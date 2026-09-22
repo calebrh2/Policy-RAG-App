@@ -1,0 +1,39 @@
+[project]
+name = "policy-rag-lab"
+version = "0.1.0"
+description = "Team scaffold for a policy-document RAG lab"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "chromadb>=1.0,<2.0",
+  "sentence-transformers>=3.0,<4.0",
+  "rank-bm25>=0.2,<0.3",
+  "markdown-it-py>=3.0,<4.0",
+  "pydantic>=2.10,<3.0",
+  "pydantic-settings>=2.7,<3.0",
+  "mistralai>=1.0,<2.0",
+  "tenacity>=9.0,<10.0",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.0,<9.0",
+  "pytest-cov>=6.0,<7.0",
+  "ruff>=0.9,<1.0",
+  "mypy>=1.14,<2.0",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+packages = ["rag"]

@@ -1,0 +1,16 @@
+# Compatibility dependency export. `pyproject.toml` is the source of truth and
+# contributors should use `uv sync`; update this file through `uv export`.
+
+# Core RAG pipeline
+chromadb>=1.0,<2.0
+sentence-transformers>=3.0,<4.0
+rank-bm25>=0.2,<0.3
+
+# Document parsing and schemas
+markdown-it-py>=3.0,<4.0
+pydantic>=2.10,<3.0
+pydantic-settings>=2.7,<3.0
+
+# LLM adapter and resilience
+mistralai>=1.0,<2.0
+tenacity>=9.0,<10.0

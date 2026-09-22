@@ -1,0 +1,8 @@
+# Compatibility dependency export. Use `uv sync --all-groups` for development.
+-r requirements.txt
+
+# Tests, evaluation, quality checks
+pytest>=8.0,<9.0
+pytest-cov>=6.0,<7.0
+ruff>=0.9,<1.0
+mypy>=1.14,<2.0

@@ -1,0 +1,18 @@
+services:
+  rag-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/workspace
+      - uv-environment:/workspace/.venv
+      - chroma-data:/workspace/data/chromadb
+    env_file:
+      - path: .env
+        required: false
+    working_dir: /workspace
+    tty: true
+
+volumes:
+  uv-environment:
+  chroma-data:
