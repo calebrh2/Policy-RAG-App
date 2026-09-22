@@ -4,7 +4,7 @@
   "service": "rag-dev",
   "workspaceFolder": "/workspace",
   "shutdownAction": "stopCompose",
-  "postCreateCommand": "uv sync --all-groups",
+  "postCreateCommand": "uv sync --group dev",
   "remoteEnv": {
     "PATH": "/workspace/.venv/bin:${containerEnv:PATH}"
   },

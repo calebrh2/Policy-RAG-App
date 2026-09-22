@@ -1,4 +1,4 @@
-# Compatibility dependency export. `pyproject.toml` is the source of truth and
+# Compatibility runtime export. `pyproject.toml` is the source of truth and
 # contributors should use `uv sync`; update this file through `uv export`.
 
 # Core RAG pipeline
@@ -8,9 +8,10 @@ rank-bm25>=0.2,<0.3
 
 # Document parsing and schemas
 markdown-it-py>=3.0,<4.0
+pymupdf>=1.25,<2.0
 pydantic>=2.10,<3.0
 pydantic-settings>=2.7,<3.0
 
-# LLM adapter and resilience
-mistralai>=1.0,<2.0
+# Resilience. Mistral runs locally and is called over its local HTTP API, so no
+# Mistral Python SDK is installed in this project.
 tenacity>=9.0,<10.0

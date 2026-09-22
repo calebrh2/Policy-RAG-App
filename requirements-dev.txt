@@ -1,4 +1,5 @@
-# Compatibility dependency export. Use `uv sync --all-groups` for development.
+# Compatibility dependency export. Use `uv sync --group dev` for normal
+# development, adding `--group rag` only for indexing/retrieval work.
 -r requirements.txt
 
 # Tests, evaluation, quality checks

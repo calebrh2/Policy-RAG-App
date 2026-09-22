@@ -10,11 +10,27 @@ The source modules and test folders are deliberately empty. Implement features i
 
 ## Local environment
 
-Copy `.env.example` to `.env`, add credentials only when an LLM adapter is implemented, then either reopen in the dev container or run:
+Copy `.env.example` to `.env`, set the local Mistral endpoint when its adapter is implemented, then either reopen in the dev container or run:
 
 ```bash
 docker compose run --rm rag-dev
 ```
+
+## Install dependencies with uv
+
+The dev container runs this automatically. Outside the container, install the standard project and developer tools with:
+
+```bash
+uv sync --group dev
+```
+
+When working on indexing, embeddings, reranking, or retrieval, install the optional ML stack too:
+
+```bash
+uv sync --group dev --group rag
+```
+
+The `rag` group installs ChromaDB, Sentence Transformers (and therefore PyTorch), and BM25. Mistral is expected to run locally and is reached through its local HTTP endpoint, so its Python SDK is not installed.
 
 ## Quality gates
 
@@ -25,5 +41,3 @@ pytest tests/unit tests/integration tests/evaluation
 ```
 
 Run `uv lock` after changing dependencies and commit the resulting `uv.lock`. The requirements files are retained only as compatibility exports; `pyproject.toml` and `uv.lock` are authoritative.
-
-See `docs/pydantic-validation-and-retries.md` before implementing the generation adapter, `docs/adapters.md` for external-service boundaries, and `docs/implementation-plan.md` for module ownership and test boundaries.

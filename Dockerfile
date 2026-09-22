@@ -17,7 +17,9 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY pyproject.toml ./
-RUN uv sync --all-groups --no-install-project
+# The regular development image contains tooling only. The optional `rag` group
+# (ChromaDB, Sentence Transformers, and BM25) is installed on demand.
+RUN uv sync --group dev --no-install-project
 
 COPY . .
 
