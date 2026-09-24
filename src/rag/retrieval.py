@@ -112,3 +112,31 @@ class RetrievalService:
         if self.reranker is None:
             return candidates[:final_limit]
         return self.reranker.rerank(query, candidates, limit=final_limit)
+
+    def retrieve_statuses(
+        self,
+        query: str,
+        *,
+        statuses: Sequence[str],
+        candidate_limit: int = 10,
+        final_limit: int = 5,
+    ) -> list[SearchResult]:
+        """Retrieve one or more policy versions, then rerank them together."""
+        if not statuses:
+            return []
+        rankings = [
+            self.hybrid(
+                query,
+                candidate_limit=candidate_limit,
+                limit=candidate_limit * 2,
+                filters={"status": status},
+            )
+            for status in dict.fromkeys(statuses)
+        ]
+        candidates = reciprocal_rank_fusion(
+            rankings,
+            limit=candidate_limit * len(rankings) * 2,
+        )
+        if self.reranker is None:
+            return candidates[:final_limit]
+        return self.reranker.rerank(query, candidates, limit=final_limit)
