@@ -24,6 +24,7 @@ dev = [
 rag = [
   "chromadb>=1.0,<2.0",
   "sentence-transformers>=3.0,<4.0",
+  "snowballstemmer>=2.2,<3.0",
   "torch>=1.11",
   "rank-bm25>=0.2,<0.3",
 ]
@@ -42,6 +43,7 @@ explicit = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]
 addopts = "-ra"
 
 [tool.ruff]
