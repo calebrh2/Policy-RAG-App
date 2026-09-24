@@ -50,3 +50,7 @@ line-length = 100
 python_version = "3.12"
 strict = true
 packages = ["rag"]
+
+[[tool.mypy.overrides]]
+module = ["sentence_transformers"]
+ignore_missing_imports = true
