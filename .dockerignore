@@ -1,0 +1,5 @@
+web/node_modules
+web/.next
+.venv
+.git
+data/chromadb

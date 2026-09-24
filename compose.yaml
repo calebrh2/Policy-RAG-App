@@ -13,6 +13,22 @@ services:
     working_dir: /workspace
     tty: true
 
+  rag-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/workspace
+      - uv-environment:/workspace/.venv
+      - chroma-data:/workspace/data/chromadb
+    env_file:
+      - path: .env
+        required: false
+    working_dir: /workspace
+    command: ["uv", "run", "python", "-m", "rag.server"]
+    ports:
+      - "8000:8000"
+
 volumes:
   uv-environment:
   chroma-data:
