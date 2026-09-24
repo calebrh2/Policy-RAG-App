@@ -32,6 +32,23 @@ uv sync --group dev --group rag
 
 The `rag` group installs ChromaDB, Sentence Transformers (and therefore PyTorch), and BM25. Mistral is expected to run locally and is reached through its local HTTP endpoint, so its Python SDK is not installed.
 
+## Ingest the policy corpus
+
+From the repository root, after the `rag` group is installed:
+
+```bash
+uv run python scripts/ingest.py
+```
+
+The script reads every markdown file in `data/extracted/RAG-documents`, chunks each file by section, and stores the chunks in two places:
+
+- `data/chromadb` holds the dense embeddings and chunk metadata.
+- `data/keyword/chunks.sqlite` holds the BM25 keyword index.
+
+The first run downloads `BAAI/bge-small-en-v1.5` and embeds every chunk. Later runs open those same databases and update them in place.
+
+Re-ingesting a file with the same publication date replaces that edition's chunks. A new publication date for the same policy is stored as another edition beside the older one. The latest date is marked current.
+
 ## Quality gates
 
 ```bash
