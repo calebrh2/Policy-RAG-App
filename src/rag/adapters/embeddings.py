@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Protocol, cast
 
 MODEL_NAME = "BAAI/bge-small-en-v1.5"
 QUERY_INSTRUCTION = "Represent this sentence for searching relevant passages: "
@@ -34,11 +34,13 @@ class SentenceTransformerEmbedder:
         return [_as_floats(row) for row in encoded]  # type: ignore[attr-defined]
 
     def _model(self) -> _Encoder:
-        if self._encoder is None:
+        encoder = self._encoder
+        if encoder is None:
             from sentence_transformers import SentenceTransformer
 
-            self._encoder = SentenceTransformer(self._model_name)
-        return self._encoder
+            encoder = cast(_Encoder, SentenceTransformer(self._model_name))
+            self._encoder = encoder
+        return encoder
 
 
 def _as_floats(row: object) -> list[float]:

@@ -52,5 +52,5 @@ strict = true
 packages = ["rag"]
 
 [[tool.mypy.overrides]]
-module = ["sentence_transformers"]
+module = ["sentence_transformers", "chromadb"]
 ignore_missing_imports = true
