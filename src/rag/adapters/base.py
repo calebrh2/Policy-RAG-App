@@ -41,6 +41,19 @@ class Embedder(Protocol):
         """Embed one question so it can be compared with document vectors."""
 
 
+@dataclass(frozen=True)
+class KeywordHit:
+    """One stored chunk returned by a keyword search."""
+
+    chunk_id: str
+    document_name: str
+    version: str
+    section: str
+    source_pages: str
+    text: str
+    score: float
+
+
 class VectorStore(Protocol):
     """Stores chunk vectors and returns the nearest chunks for a question."""
 
@@ -49,3 +62,13 @@ class VectorStore(Protocol):
 
     def query(self, query: str, *, limit: int = 5, version: str | None = None) -> list[SearchHit]:
         """Return the nearest stored chunks, optionally limited to one version."""
+
+
+class KeywordIndex(Protocol):
+    """Stores chunk text and returns chunks that share the question's exact words."""
+
+    def upsert(self, records: list[ChunkRecord]) -> None:
+        """Index chunk text. A repeated chunk_id replaces the old row."""
+
+    def query(self, query: str, *, limit: int = 5, version: str | None = None) -> list[KeywordHit]:
+        """Return chunks with the highest keyword score, optionally for one version."""

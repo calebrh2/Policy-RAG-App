@@ -22,7 +22,7 @@ rag = [
   "chromadb>=1.0,<2.0",
   "sentence-transformers>=3.0,<4.0",
   "torch>=1.11",
-  "rank-bm25>=0.2,<0.3",
+  "snowballstemmer>=2.2,<3.0",
 ]
 
 [tool.uv]
