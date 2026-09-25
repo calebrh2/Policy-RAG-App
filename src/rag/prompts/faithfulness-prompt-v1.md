@@ -22,15 +22,15 @@ Return JSON with the keys pass and reason. reason is an empty string when pass i
 <example>
 <cited_chunks>
 <chunk>
-chunk_id: ex-cups
-Plastic plates, cups, and glasses are prohibited.
+chunk_id: ex-sign-in
+Visitors must sign in at reception before entering the office.
 </chunk>
 </cited_chunks>
 <question>
-Are plastic cups prohibited?
+Must visitors sign in?
 </question>
 <answer>
-Yes. Plastic cups are prohibited.
+Yes. Visitors must sign in at reception.
 </answer>
 <verdict>
 {"pass": true, "reason": ""}
@@ -39,25 +39,25 @@ Yes. Plastic cups are prohibited.
 <example>
 <cited_chunks>
 <chunk>
-chunk_id: ex-cups
-Plastic plates, cups, and glasses are prohibited.
+chunk_id: ex-sign-in
+Visitors must sign in at reception before entering the office.
 </chunk>
 </cited_chunks>
 <question>
-Are plastic cups prohibited?
+Must visitors sign in?
 </question>
 <answer>
-Yes. Plastic cups are prohibited by Dec 2026.
+Yes. Visitors must sign in at reception by 8 a.m.
 </answer>
 <verdict>
-{"pass": false, "reason": "The cited chunks do not state Dec 2026."}
+{"pass": false, "reason": "The cited chunks do not state 8 a.m."}
 </verdict>
 </example>
 <example>
 <cited_chunks>
 </cited_chunks>
 <question>
-What is the deadline for travel expense reports?
+What is served in the office cafeteria?
 </question>
 <answer>
 The corpus does not mention this.

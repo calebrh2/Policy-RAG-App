@@ -1,16 +1,17 @@
-"""Fixed questions, the chunk each one should retrieve, and the gold answer.
+"""Coforge questions, the chunk each one should retrieve, and the gold answer.
 
 Purpose
 -------
 The retrieval harness scores ``CASES`` against the current chunk that states
 the answer. Generation eval scores ``GENERATION_CASES``, which adds questions
-the corpus cannot answer.
+the Coforge corpus cannot answer. Meridian questions live in
+``meridian_cases``. ``catalog.cases_for`` selects a set by corpus name.
 
 Contents
 --------
 - ``EvalCase``: one question, its expected chunk, gold answer, and key facts.
-- ``CASES``: questions the corpus can answer.
-- ``REFUSAL_CASES``: questions the corpus cannot answer.
+- ``CASES``: Coforge questions the corpus can answer.
+- ``REFUSAL_CASES``: Coforge questions the corpus cannot answer.
 - ``GENERATION_CASES``: ``CASES`` followed by ``REFUSAL_CASES``.
 """
 

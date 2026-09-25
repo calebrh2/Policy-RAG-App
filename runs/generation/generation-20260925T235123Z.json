@@ -1,0 +1,339 @@
+{
+  "corpus": "meridian",
+  "faithfulness_prompt": "faithfulness-prompt-v1",
+  "accuracy_prompt": "accuracy-prompt-v1",
+  "k": 5,
+  "means": {
+    "citations_ok": 1.0,
+    "refusal_ok": 1.0,
+    "faithful": 0.9,
+    "accurate": 1.0,
+    "key_information": 0.8
+  },
+  "queries": [
+    {
+      "case_id": "leave-pto-days",
+      "question": "How many days of Paid Time Off does the current Leave Policy accrue per year?",
+      "gold_answer": "Employees accrue 20 days of Paid Time Off per year.",
+      "expect_supported": true,
+      "gold_chunk_id": "meridian-analytics-leave-policy:2026-03-01:3",
+      "gold_in_prompt": true,
+      "answer": {
+        "supported": true,
+        "text": "The current Leave Policy accrues 20 days of Paid Time Off per year.",
+        "citations": [
+          {
+            "chunk_id": "meridian-analytics-leave-policy:2026-03-01:3",
+            "document_title": "Meridian Analytics \u2014 Leave Policy",
+            "section_path": "3. Vacation / Paid Time Off"
+          }
+        ]
+      },
+      "raw_citation_ids": [
+        "meridian-analytics-leave-policy:2026-03-01:3"
+      ],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "20 days"
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "leave-sick-days",
+      "question": "How many sick leave days does the current Leave Policy give per year?",
+      "gold_answer": "Employees receive 10 days of sick leave per year.",
+      "expect_supported": true,
+      "gold_chunk_id": "meridian-analytics-leave-policy:2026-03-01:4",
+      "gold_in_prompt": true,
+      "answer": {
+        "supported": true,
+        "text": "10 sick leave days per year.",
+        "citations": [
+          {
+            "chunk_id": "meridian-analytics-leave-policy:2026-03-01:4",
+            "document_title": "Meridian Analytics \u2014 Leave Policy",
+            "section_path": "4. Sick Leave"
+          }
+        ]
+      },
+      "raw_citation_ids": [
+        "meridian-analytics-leave-policy:2026-03-01:4"
+      ],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": false,
+      "key_facts": [
+        "10 days"
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "leave-parental-weeks",
+      "question": "How many weeks of parental leave does the current Leave Policy grant, and how is that leave paid?",
+      "gold_answer": "Up to 12 weeks. The first six weeks are paid in full, and the remaining six weeks are paid at 50% of base salary.",
+      "expect_supported": true,
+      "gold_chunk_id": "meridian-analytics-leave-policy:2026-03-01:5",
+      "gold_in_prompt": true,
+      "answer": {
+        "supported": true,
+        "text": "The current Leave Policy grants 12 weeks of parental leave. The first 6 weeks of parental leave are paid in full, whereas the remaining 6 weeks, if taken, are paid at 50% of base salary.",
+        "citations": [
+          {
+            "chunk_id": "meridian-analytics-leave-policy:2026-03-01:5",
+            "document_title": "Meridian Analytics \u2014 Leave Policy",
+            "section_path": "5. Parental Leave"
+          }
+        ]
+      },
+      "raw_citation_ids": [
+        "meridian-analytics-leave-policy:2026-03-01:5"
+      ],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "12 weeks",
+        "50%"
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "health-hsa-contribution",
+      "question": "How much does the Health & Benefits Policy contribute each year to an HSA for employees who elect the HDHP?",
+      "gold_answer": "$750 for employee-only coverage or $1,500 for family coverage.",
+      "expect_supported": true,
+      "gold_chunk_id": "meridian-analytics-health-benefits-policy:2026-03-01:3",
+      "gold_in_prompt": true,
+      "answer": {
+        "supported": true,
+        "text": "The Health & Benefits Policy contributes $750 per year for employee-only coverage or $1,500 for family coverage to an HSA for employees who elect the HDHP.",
+        "citations": [
+          {
+            "chunk_id": "meridian-analytics-health-benefits-policy:2026-03-01:3",
+            "document_title": "Meridian Analytics \u2014 Health & Benefits Policy",
+            "section_path": "3. Medical, Dental, and Vision Coverage"
+          }
+        ]
+      },
+      "raw_citation_ids": [
+        "meridian-analytics-health-benefits-policy:2026-03-01:3"
+      ],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "$750",
+        "$1,500"
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "health-enrollment-window",
+      "question": "How long do new employees have to enroll in benefits under the Health & Benefits Policy?",
+      "gold_answer": "30 days from their eligibility date.",
+      "expect_supported": true,
+      "gold_chunk_id": "meridian-analytics-health-benefits-policy:2026-03-01:4",
+      "gold_in_prompt": true,
+      "answer": {
+        "supported": true,
+        "text": "New employees must enroll in benefits within 30 days of their eligibility date.",
+        "citations": [
+          {
+            "chunk_id": "meridian-analytics-health-benefits-policy:2026-03-01:4",
+            "document_title": "Meridian Analytics \u2014 Health & Benefits Policy",
+            "section_path": "4. Enrollment Periods"
+          }
+        ]
+      },
+      "raw_citation_ids": [
+        "meridian-analytics-health-benefits-policy:2026-03-01:4"
+      ],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "30 days"
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "health-wellness-reimbursement",
+      "question": "What is the annual wellness reimbursement under the Health & Benefits Policy?",
+      "gold_answer": "Up to $300 per year.",
+      "expect_supported": true,
+      "gold_chunk_id": "meridian-analytics-health-benefits-policy:2026-03-01:5",
+      "gold_in_prompt": true,
+      "answer": {
+        "supported": true,
+        "text": "The annual wellness reimbursement under the Health & Benefits Policy is up to $300 per year.",
+        "citations": [
+          {
+            "chunk_id": "meridian-analytics-health-benefits-policy:2026-03-01:5",
+            "document_title": "Meridian Analytics \u2014 Health & Benefits Policy",
+            "section_path": "5. Wellness Program"
+          }
+        ]
+      },
+      "raw_citation_ids": [
+        "meridian-analytics-health-benefits-policy:2026-03-01:5"
+      ],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "$300"
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "security-mfa",
+      "question": "Does the IT & Data Security Policy require multi-factor authentication for company accounts?",
+      "gold_answer": "Yes. Multi-factor authentication is required for all company accounts.",
+      "expect_supported": true,
+      "gold_chunk_id": "meridian-analytics-it-data-security-policy:2026-03-01:3",
+      "gold_in_prompt": true,
+      "answer": {
+        "supported": true,
+        "text": "Yes, the IT & Data Security Policy requires multi-factor authentication for all company accounts.",
+        "citations": [
+          {
+            "chunk_id": "meridian-analytics-it-data-security-policy:2026-03-01:3",
+            "document_title": "Meridian Analytics \u2014 IT & Data Security Policy",
+            "section_path": "3. Device and Account Security"
+          }
+        ]
+      },
+      "raw_citation_ids": [
+        "meridian-analytics-it-data-security-policy:2026-03-01:3"
+      ],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "Multi-factor authentication"
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "security-incident-hour",
+      "question": "How soon must a suspected security incident be reported under the IT & Data Security Policy?",
+      "gold_answer": "Within 1 hour of discovery.",
+      "expect_supported": true,
+      "gold_chunk_id": "meridian-analytics-it-data-security-policy:2026-03-01:6",
+      "gold_in_prompt": true,
+      "answer": {
+        "supported": true,
+        "text": "A suspected security incident must be reported to IT Security within 1 hour of discovery.",
+        "citations": [
+          {
+            "chunk_id": "meridian-analytics-it-data-security-policy:2026-03-01:6",
+            "document_title": "Meridian Analytics \u2014 IT & Data Security Policy",
+            "section_path": "6. Incident Reporting"
+          }
+        ]
+      },
+      "raw_citation_ids": [
+        "meridian-analytics-it-data-security-policy:2026-03-01:6"
+      ],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "1 hour"
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "travel-expense-deadline",
+      "question": "What is the deadline for travel expense reports?",
+      "gold_answer": "The corpus does not mention this.",
+      "expect_supported": false,
+      "gold_chunk_id": null,
+      "gold_in_prompt": null,
+      "answer": {
+        "supported": true,
+        "text": "The deadline for travel expense reports is not explicitly stated in the provided corpus. However, in the IT & Data Security Policy, employees are required to complete IT Security's annual security awareness training by the deadline communicated each year ( Meridian-Analytics-it-data-security-policy:2026-03-01:9 ). Given that the term 'travel expense reports' is not mentioned, it can be assumed that they might fall under a different deadline or policy.",
+        "citations": [
+          {
+            "chunk_id": "meridian-analytics-it-data-security-policy:2026-03-01:9",
+            "document_title": "Meridian Analytics \u2014 IT & Data Security Policy",
+            "section_path": "9. Security Awareness Training"
+          }
+        ]
+      },
+      "raw_citation_ids": [
+        "meridian-analytics-it-data-security-policy:2026-03-01:9"
+      ],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": false,
+      "accurate": true,
+      "key_information": false,
+      "key_facts": [
+        "The corpus does not mention this."
+      ],
+      "faithfulness_reason": "The cited chunks do not state the deadline for travel expense reports.",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "plastic-cups-prohibited",
+      "question": "Are plastic plates, cups, and glasses prohibited?",
+      "gold_answer": "The corpus does not mention this.",
+      "expect_supported": false,
+      "gold_chunk_id": null,
+      "gold_in_prompt": null,
+      "answer": {
+        "supported": false,
+        "text": "The corpus does not mention this.",
+        "citations": []
+      },
+      "raw_citation_ids": [],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "The corpus does not mention this."
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    }
+  ]
+}

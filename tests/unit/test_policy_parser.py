@@ -6,7 +6,8 @@ from pathlib import Path
 
 from rag.adapters.parsing import PolicyMarkdownParser
 
-DOCS = Path(__file__).resolve().parents[2] / "data/extracted/RAG-documents"
+DOCS = Path(__file__).resolve().parents[2] / "data/extracted/previous"
+MERIDIAN = Path(__file__).resolve().parents[2] / "data/extracted/RAG-documents"
 
 
 def test_carbon_plans_share_an_id_and_keep_their_publication_dates() -> None:
@@ -24,6 +25,18 @@ def test_carbon_plans_share_an_id_and_keep_their_publication_dates() -> None:
         for block in current.blocks
     )
     assert all("source_pages" not in block.text for block in current.blocks)
+
+
+def test_leave_policies_share_an_id_and_keep_their_publication_dates() -> None:
+    """The current and outdated leave files are two editions of one document."""
+    parser = PolicyMarkdownParser()
+    current = parser.parse(str(MERIDIAN / "POL-LV-500_leave_polic 1.md"))
+    outdated = parser.parse(str(MERIDIAN / "POL-LV-500_leave_policy_outdated_v0.8.md"))
+
+    assert current.document_id == outdated.document_id == "meridian-analytics-leave-policy"
+    assert current.title == outdated.title == "Meridian Analytics — Leave Policy"
+    assert current.version == "2026-03-01"
+    assert outdated.version == "2023-04-01"
 
 
 def test_water_policy_has_no_version() -> None:

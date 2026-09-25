@@ -1,16 +1,19 @@
 """Score golden-set retrieval and write one JSON run.
 
-Run from the repository root, after the indexes exist:
+Run from the repository root, after that corpus has been ingested:
 
     uv run python scripts/evaluate_retrieval.py
+    uv run python scripts/evaluate_retrieval.py --corpus coforge
 
-Each golden question is retrieved and reranked once. The ordered chunk ids are
-the ones ``generate`` would place in the prompt. The chat model is not called.
-The file lands in ``runs/retrieval/retrieval-<UTC timestamp>.json``.
+Each golden question for the selected corpus is retrieved and reranked once.
+The ordered chunk ids are the ones ``generate`` would place in the prompt.
+The chat model is not called. The file lands in
+``runs/retrieval/retrieval-<UTC timestamp>.json``.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 from collections.abc import Mapping, Sequence
@@ -22,6 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from rag.ChromaDB import get_collection
+from rag.corpus import add_corpus_argument, resolve_corpus
 from rag.keyword_index import KeywordIndex
 from rag.metrics import (
     ndcg_at_k,
@@ -32,10 +36,9 @@ from rag.metrics import (
 )
 from rag.rerank import default_reranker, rerank
 from rag.retrieve import retrieve
-from tests.evaluation.cases import CASES, EvalCase
+from tests.evaluation.cases import EvalCase
+from tests.evaluation.catalog import cases_for
 
-KEYWORD_PATH = ROOT / "data/keyword/chunks.sqlite"
-CHROMA_PATH = ROOT / "data/chromadb"
 RUNS = ROOT / "runs" / "retrieval"
 PROMPT_K = 5
 
@@ -104,16 +107,20 @@ def gold_chunk_id(case: EvalCase, collection: ChunkStore) -> str:
 
 def main() -> None:
     """Retrieve and rerank each golden question once, then write the run file."""
-    total = len(CASES)
-    print(f"Scoring {total} golden questions at k={PROMPT_K}", flush=True)
+    parser = argparse.ArgumentParser(description=__doc__)
+    add_corpus_argument(parser)
+    corpus = resolve_corpus(parser.parse_args().corpus)
+    cases = cases_for(corpus.name).cases
+    total = len(cases)
+    print(f"Scoring {corpus.name}: {total} golden questions at k={PROMPT_K}", flush=True)
     print("Loading dense collection", flush=True)
-    collection = get_collection(persist_directory=str(CHROMA_PATH))
+    collection = get_collection(persist_directory=str(corpus.chroma))
     print("Loading reranker", flush=True)
     reranker = default_reranker()
     queries: list[dict[str, object]] = []
     rankings: list[tuple[list[str], set[str]]] = []
-    with KeywordIndex(str(KEYWORD_PATH)) as index:
-        for number, case in enumerate(CASES, start=1):
+    with KeywordIndex(str(corpus.keyword)) as index:
+        for number, case in enumerate(cases, start=1):
             print(f"[{number}/{total}] {case.case_id}", flush=True)
             relevant = gold_chunk_id(case, collection)
             chunks = rerank(
@@ -155,6 +162,7 @@ def main() -> None:
         flush=True,
     )
     payload = {
+        "corpus": corpus.name,
         "k": PROMPT_K,
         "means": {
             "recall_at_k": scores.recall_at_k,

@@ -1,7 +1,9 @@
-"""Extract this PDF corpus with page provenance, tables, and coverage checks.
+"""Extract the Coforge PDF corpus with page provenance, tables, and coverage checks.
 
 Run: uv run python scripts/preprocessing.py
 Outputs are derived artifacts; original PDFs are never modified.
+The defaults read ``data/source/previous`` and write ``data/extracted/previous``
+so a plain run does not replace the Meridian markdown.
 """
 
 from __future__ import annotations
@@ -18,8 +20,8 @@ from typing import Any
 import pymupdf
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "data/source/RAG-documents"
-OUTPUT = ROOT / "data/extracted/RAG-documents"
+SOURCE = ROOT / "data/source/previous"
+OUTPUT = ROOT / "data/extracted/previous"
 
 
 def tokens(text: str) -> Counter[str]:

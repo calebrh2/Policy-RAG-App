@@ -1,18 +1,18 @@
-"""Retrieval recall and recorded generation quality for the fixed set.
+"""Retrieval recall and recorded generation quality for each corpus.
 
 Purpose
 -------
 Each question names one current chunk. Retrieval recall is the share of those
 questions whose chunk comes back. The newest generation run must also clear
-the key-information bar. Both bars are 0.9. Retrieval has 9 questions, so 8
-of 9 is 0.889 and fails. Generation has 11, so 10 of 11 is 0.909 and passes.
+the key-information bar. Both bars are 0.9, for whichever corpus produced the
+index or the run file.
 
 Contents
 --------
 - ``gold_chunk_id``: the single current chunk a case names.
 - ``retrieved_ids``: hybrid retrieval for one question.
-- ``test_gold_chunks_are_unique``: the fixed set names one chunk each.
-- ``test_retrieval_recall``: recall across the set is at least 0.9.
+- ``test_gold_chunks_are_unique``: each corpus's set names one chunk each.
+- ``test_retrieval_recall``: recall across that set is at least 0.9.
 - ``test_latest_generation_run_meets_key_information_threshold``: the newest
   generation run's key-information mean is at least 0.9.
 """
@@ -25,7 +25,8 @@ from typing import Protocol
 
 from rag.keyword_index import KeywordIndex
 from rag.retrieve import ChunkSearch, retrieve
-from tests.evaluation.cases import CASES, EvalCase
+from tests.evaluation.cases import EvalCase
+from tests.evaluation.catalog import cases_for
 
 _RETRIEVAL_LIMIT = 10
 _SCORE_THRESHOLD = 0.9
@@ -33,8 +34,9 @@ _GENERATION_RUNS = Path(__file__).resolve().parents[2] / "runs" / "generation"
 
 
 class _Index(Protocol):
-    """The collection and keyword path the session fixture provides."""
+    """The corpus name, collection, and keyword path the session fixture provides."""
 
+    corpus: str
     collection: ChunkSearch
     keyword_path: str
 
@@ -91,8 +93,9 @@ def retrieved_ids(case: EvalCase, index: _Index) -> list[str]:
 
 def test_gold_chunks_are_unique(eval_index: _Index) -> None:
     """Each question names exactly one current chunk."""
-    assert len(CASES) >= 8
-    for case in CASES:
+    cases = cases_for(eval_index.corpus).cases
+    assert len(cases) >= 8
+    for case in cases:
         gold_chunk_id(case, eval_index)
 
 
@@ -100,18 +103,19 @@ def test_retrieval_recall(eval_index: _Index) -> None:
     """The share of questions that retrieve the gold chunk is at least 0.9.
 
     Args:
-        eval_index: Ingested evaluation index.
+        eval_index: Ingested evaluation index for one corpus.
 
     Raises:
         AssertionError: Recall is below 0.9. The message names the misses.
     """
+    cases = cases_for(eval_index.corpus).cases
     misses = [
         case.case_id
-        for case in CASES
+        for case in cases
         if gold_chunk_id(case, eval_index) not in retrieved_ids(case, eval_index)
     ]
-    recall = (len(CASES) - len(misses)) / len(CASES)
-    assert recall >= _SCORE_THRESHOLD, f"recall={recall:.3f} misses={misses}"
+    recall = (len(cases) - len(misses)) / len(cases)
+    assert recall >= _SCORE_THRESHOLD, f"{eval_index.corpus} recall={recall:.3f} misses={misses}"
 
 
 def test_latest_generation_run_meets_key_information_threshold() -> None:

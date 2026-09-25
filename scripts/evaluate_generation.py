@@ -1,18 +1,21 @@
 """Score faithfulness, accuracy, citations, and refusal shape.
 
-Run from the repository root, after the indexes exist and the chat model is set:
+Run from the repository root, after that corpus has been ingested and the chat
+model is set:
 
     uv run python scripts/evaluate_generation.py
+    uv run python scripts/evaluate_generation.py --corpus coforge
 
-Each golden question is retrieved, reranked, and answered once. Citation ids are
-checked on the raw completion. The answer text is checked for the expected key
-facts. A judge then scores faithfulness against the cited chunks and accuracy
-against the gold answer. The file lands in
-``runs/generation/generation-<UTC timestamp>.json``.
+Each golden question for the selected corpus is retrieved, reranked, and
+answered once. Citation ids are checked on the raw completion. The answer text
+is checked for the expected key facts. A judge then scores faithfulness
+against the cited chunks and accuracy against the gold answer. The file lands
+in ``runs/generation/generation-<UTC timestamp>.json``.
 """
 
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import sys
@@ -28,6 +31,7 @@ from evaluate_retrieval import PROMPT_K, gold_chunk_id
 from rag.adapters.chat import ChatModel
 from rag.adapters.reranker import Reranker
 from rag.ChromaDB import get_collection
+from rag.corpus import add_corpus_argument, resolve_corpus
 from rag.generate import Answer, generate
 from rag.judge import (
     _ACCURACY_PROMPT,
@@ -42,10 +46,9 @@ from rag.judge import (
 from rag.keyword_index import KeywordIndex
 from rag.rerank import default_reranker, rerank
 from rag.retrieve import retrieve
-from tests.evaluation.cases import GENERATION_CASES, EvalCase
+from tests.evaluation.cases import EvalCase
+from tests.evaluation.catalog import cases_for
 
-KEYWORD_PATH = ROOT / "data/keyword/chunks.sqlite"
-CHROMA_PATH = ROOT / "data/chromadb"
 RUNS = ROOT / "runs" / "generation"
 
 
@@ -153,17 +156,21 @@ def score_case(
 
 def main() -> None:
     """Answer each generation question once, then write the run file."""
-    total = len(GENERATION_CASES)
-    print(f"Scoring {total} generation questions at k={PROMPT_K}", flush=True)
+    parser = argparse.ArgumentParser(description=__doc__)
+    add_corpus_argument(parser)
+    corpus = resolve_corpus(parser.parse_args().corpus)
+    cases = cases_for(corpus.name).generation_cases
+    total = len(cases)
+    print(f"Scoring {corpus.name}: {total} generation questions at k={PROMPT_K}", flush=True)
     print("Loading dense collection", flush=True)
-    collection = get_collection(persist_directory=str(CHROMA_PATH))
+    collection = get_collection(persist_directory=str(corpus.chroma))
     print("Loading reranker", flush=True)
     reranker = default_reranker()
     print("Loading chat model", flush=True)
     model = _chat_model()
     queries: list[dict[str, object]] = []
-    with KeywordIndex(str(KEYWORD_PATH)) as index:
-        for number, case in enumerate(GENERATION_CASES, start=1):
+    with KeywordIndex(str(corpus.keyword)) as index:
+        for number, case in enumerate(cases, start=1):
             print(f"[{number}/{total}] {case.case_id}", flush=True)
             record = score_case(case, collection, index, reranker, model)
             queries.append(record)
@@ -182,6 +189,7 @@ def main() -> None:
         flush=True,
     )
     payload = {
+        "corpus": corpus.name,
         "faithfulness_prompt": _FAITHFULNESS_PROMPT,
         "accuracy_prompt": _ACCURACY_PROMPT,
         "k": PROMPT_K,

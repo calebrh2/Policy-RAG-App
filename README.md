@@ -36,48 +36,51 @@ The `rag` group installs ChromaDB, Sentence Transformers (and therefore PyTorch)
 
 Run these from the repository root after `uv sync --group dev --group rag`. The dev container already has `src` on `PYTHONPATH`.
 
-### Extract the source PDFs
+### Extract the Coforge PDFs
 
 ```bash
 uv run python scripts/preprocessing.py
 ```
 
-This reads every PDF in `data/source/RAG-documents` and writes markdown, with page markers and tables, to `data/extracted/RAG-documents`. Those markdown files are already in the repository; run this again only after a source PDF changes. `--input-dir` and `--output-dir` override the two paths.
+This reads every PDF in `data/source/previous` and writes markdown, with page markers and tables, to `data/extracted/previous`. Those markdown files are already in the repository; run this again only after a source PDF changes. `--input-dir` and `--output-dir` override the two paths. The Meridian policies are already markdown and have no PDF step.
 
-### Ingest the policy corpus
+### Ingest a policy corpus
 
 ```bash
 uv run python scripts/ingest.py
+uv run python scripts/ingest.py --corpus coforge
 ```
 
-The script reads every markdown file in `data/extracted/RAG-documents`, chunks each file by section, and stores the chunks in two places:
+`--corpus` defaults to `RAG_CORPUS`, then `meridian`. `meridian` reads `data/extracted/RAG-documents`. `coforge` reads `data/extracted/previous`. Each corpus is stored in its own indexes:
 
-- `data/chromadb` holds the dense embeddings and chunk metadata.
-- `data/keyword/chunks.sqlite` holds the BM25 keyword index.
+- `data/chromadb/<corpus>` holds the dense embeddings and chunk metadata.
+- `data/keyword/<corpus>.sqlite` holds the BM25 keyword index.
 
-The first run downloads `BAAI/bge-small-en-v1.5` and embeds every chunk. Later runs open those same databases and update them in place.
+The first run downloads `BAAI/bge-small-en-v1.5` and embeds every chunk. Later runs open that corpus's databases and update them in place.
 
 Re-ingesting a file with the same publication date replaces that edition's chunks. A new publication date for the same policy is stored as another edition beside the older one. The latest date is marked current.
 
 ### Score retrieval
 
-After the indexes exist:
+After that corpus's indexes exist:
 
 ```bash
 uv run python scripts/evaluate_retrieval.py
+uv run python scripts/evaluate_retrieval.py --corpus coforge
 ```
 
-Each golden question is retrieved from the dense index and the BM25 index, fused with reciprocal rank fusion, and reranked with `cross-encoder/ms-marco-MiniLM-L-6-v2`. The chat model is not called. The first run downloads the cross-encoder. The report is written to `runs/retrieval/retrieval-<UTC timestamp>.json`.
+Each golden question for the selected corpus is retrieved from the dense index and the BM25 index, fused with reciprocal rank fusion, and reranked with `cross-encoder/ms-marco-MiniLM-L-6-v2`. The chat model is not called. The first run downloads the cross-encoder. The report is written to `runs/retrieval/retrieval-<UTC timestamp>.json` and names the corpus.
 
 ### Score generation
 
-With the indexes in place and the local model running:
+With that corpus's indexes in place and the local model running:
 
 ```bash
 uv run python scripts/evaluate_generation.py
+uv run python scripts/evaluate_generation.py --corpus coforge
 ```
 
-Unset `LLM_BASE_URL` and `LLM_MODEL` values are filled from `.env`. Each golden question is retrieved, reranked, and answered. Citation ids are checked on the raw completion, then the same model scores faithfulness against the cited chunks and accuracy against the gold answer. The report is written to `runs/generation/generation-<UTC timestamp>.json`.
+Unset `LLM_BASE_URL` and `LLM_MODEL` values are filled from `.env`. Each golden question for the selected corpus is retrieved, reranked, and answered. Citation ids are checked on the raw completion, then the same model scores faithfulness against the cited chunks and accuracy against the gold answer. The report is written to `runs/generation/generation-<UTC timestamp>.json` and names the corpus.
 
 ### Serve the query API
 
@@ -85,12 +88,12 @@ Unset `LLM_BASE_URL` and `LLM_MODEL` values are filled from `.env`. Each golden 
 uv run uvicorn api.main:app --app-dir src --env-file .env --host 127.0.0.1 --port 8000
 ```
 
-`GET /` is the health check. `POST /query` runs retrieval, reranking, and generation for one question and returns a validated answer with citations. The first request loads the embedding model, the cross-encoder, and the chat client.
+`GET /` is the health check. `POST /query` runs retrieval, reranking, and generation for one question and returns a validated answer with citations. The API uses `RAG_CORPUS` from the environment (`meridian` when unset) and keeps that corpus for the life of the process. The first request loads the embedding model, the cross-encoder, and the chat client.
 
 ```bash
 curl -s http://127.0.0.1:8000/query \
   -H 'Content-Type: application/json' \
-  -d '{"text": "Are plastic cups banned?"}'
+  -d '{"text": "How many days of Paid Time Off does the current Leave Policy accrue per year?"}'
 ```
 
 ### Chat UI

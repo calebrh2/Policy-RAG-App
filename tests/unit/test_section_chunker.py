@@ -7,7 +7,7 @@ from pathlib import Path
 from rag.adapters.chunking import TOKEN_MAX, SectionChunker
 from rag.adapters.parsing import ParsedBlock, ParsedDocument, PolicyMarkdownParser
 
-DOCS = Path(__file__).resolve().parents[2] / "data/extracted/RAG-documents"
+DOCS = Path(__file__).resolve().parents[2] / "data/extracted/previous"
 
 
 def test_carbon_plan_chunks_follow_section_rules() -> None:

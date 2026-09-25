@@ -18,7 +18,7 @@ from rag.judge import (
     refusal_ok,
 )
 from rag.retrieve import RetrievedChunk
-from tests.evaluation.cases import CASES, GENERATION_CASES, REFUSAL_CASES
+from tests.evaluation.catalog import cases_for
 
 
 class FakeChat:
@@ -106,22 +106,26 @@ def test_prompt_files_are_version_one() -> None:
 
 def test_answerable_cases_have_gold_answers() -> None:
     """Each retrieval case expects a supported answer with a reference."""
-    assert CASES
-    for case in CASES:
-        assert case.expect_supported
-        assert case.gold_answer
-        assert case.gold_answer != REFUSAL
+    for name in ("meridian", "coforge"):
+        cases = cases_for(name).cases
+        assert cases
+        for case in cases:
+            assert case.expect_supported
+            assert case.gold_answer
+            assert case.gold_answer != REFUSAL
 
 
 def test_refusal_cases_are_unanswerable() -> None:
-    """The generation set adds questions the corpus cannot answer."""
-    assert len(REFUSAL_CASES) == 2
-    for case in REFUSAL_CASES:
-        assert not case.expect_supported
-        assert case.gold_answer == REFUSAL
-        assert case.document_id == ""
-        assert case not in CASES
-        assert case in GENERATION_CASES
+    """Each generation set adds questions that corpus cannot answer."""
+    for name in ("meridian", "coforge"):
+        evaluation = cases_for(name)
+        assert len(evaluation.refusal_cases) == 2
+        for case in evaluation.refusal_cases:
+            assert not case.expect_supported
+            assert case.gold_answer == REFUSAL
+            assert case.document_id == ""
+            assert case not in evaluation.cases
+            assert case in evaluation.generation_cases
 
 
 def test_known_citation_with_a_title_passes() -> None:

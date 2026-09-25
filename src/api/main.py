@@ -37,6 +37,7 @@ app.add_middleware(
 
 _lock = threading.Lock()
 _collection: ChunkSearch | None = None
+_keyword_path: str | None = None
 _reranker: Reranker | None = None
 _model: ChatModel | None = None
 
@@ -102,7 +103,9 @@ def answer_query(query_text: str) -> Answer:
     """Retrieve, rerank, and generate an answer.
 
     The dense collection, reranker, and chat model are loaded on first use
-    and reused. The keyword index is opened for this call.
+    and reused. The corpus is ``RAG_CORPUS``, or ``meridian`` when that
+    variable is unset. Restart the process to switch corpora. The keyword
+    index is opened for this call.
 
     Args:
         query_text: User question.
@@ -113,19 +116,26 @@ def answer_query(query_text: str) -> Answer:
     """
     from rag.adapters.chat import default_chat_model
     from rag.ChromaDB import get_collection
+    from rag.corpus import resolve_corpus
     from rag.generate import generate
     from rag.keyword_index import KeywordIndex
     from rag.rerank import default_reranker, rerank
     from rag.retrieve import retrieve
 
-    global _collection, _reranker, _model
+    global _collection, _keyword_path, _reranker, _model
     with _lock:
-        if _collection is None:
-            _collection = cast(ChunkSearch, get_collection())
+        collection = _collection
+        keyword_path = _keyword_path
+        if collection is None or keyword_path is None:
+            corpus = resolve_corpus()
+            collection = cast(ChunkSearch, get_collection(persist_directory=str(corpus.chroma)))
+            keyword_path = str(corpus.keyword)
+            _collection = collection
+            _keyword_path = keyword_path
         if _reranker is None:
             _reranker = default_reranker()
         if _model is None:
             _model = default_chat_model()
-        with KeywordIndex() as index:
-            chunks = retrieve(query_text, _collection, index)
+        with KeywordIndex(keyword_path) as index:
+            chunks = retrieve(query_text, collection, index)
         return generate(query_text, rerank(query_text, chunks, _reranker), _model)

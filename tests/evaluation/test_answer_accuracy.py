@@ -20,15 +20,18 @@ from __future__ import annotations
 
 from rag.generate import REFUSAL
 from rag.judge import contains_key_information
-from tests.evaluation.cases import CASES, REFUSAL_CASES
+from tests.evaluation.cases import CASES
+from tests.evaluation.catalog import cases_for
 
 
 def test_set_has_at_least_eight_answerable_questions() -> None:
     """Each answerable question has key facts, and the gold answer contains them."""
-    assert len(CASES) >= 8
-    for case in CASES:
-        assert case.key_facts
-        assert contains_key_information(case.gold_answer, case.key_facts)
+    for name in ("meridian", "coforge"):
+        cases = cases_for(name).cases
+        assert len(cases) >= 8
+        for case in cases:
+            assert case.key_facts
+            assert contains_key_information(case.gold_answer, case.key_facts)
 
 
 def test_missing_key_fact_fails() -> None:
@@ -50,7 +53,10 @@ def test_key_fact_match_is_case_insensitive() -> None:
 
 def test_refusal_must_match_the_refusal_exactly() -> None:
     """An unanswerable question passes only when the text is the refusal."""
-    for case in REFUSAL_CASES:
+    refusal_cases = [
+        case for name in ("meridian", "coforge") for case in cases_for(name).refusal_cases
+    ]
+    for case in refusal_cases:
         assert contains_key_information(REFUSAL, case.key_facts, exact=True)
         assert not contains_key_information(
             REFUSAL + " The deadline is Friday.",

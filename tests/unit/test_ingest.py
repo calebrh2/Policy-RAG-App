@@ -8,7 +8,8 @@ from pathlib import Path
 from rag.ingest import ingest
 from rag.keyword_index import KeywordIndex
 
-DOCS = Path(__file__).resolve().parents[2] / "data/extracted/RAG-documents"
+DOCS = Path(__file__).resolve().parents[2] / "data/extracted/previous"
+MERIDIAN = Path(__file__).resolve().parents[2] / "data/extracted/RAG-documents"
 
 
 class FakeCollection:
@@ -93,6 +94,36 @@ def test_carbon_editions_stay_separate_and_search_defaults_to_current(tmp_path: 
     ]
     assert covers
     assert index.search("Supplier") == []
+    index.close()
+
+
+def test_leave_editions_share_an_id_and_mark_the_later_date_current(tmp_path: Path) -> None:
+    """The March 2026 leave policy is current and the April 2023 edition is outdated."""
+    index = KeywordIndex(str(tmp_path / "chunks.sqlite"))
+    collection = FakeCollection()
+    ingest(
+        [
+            str(MERIDIAN / "POL-LV-500_leave_polic 1.md"),
+            str(MERIDIAN / "POL-LV-500_leave_policy_outdated_v0.8.md"),
+        ],
+        index,
+        collection,
+    )
+
+    current = {
+        row["metadata"]["version"]
+        for row in collection.rows.values()
+        if row["metadata"]["status"] == "current"  # type: ignore[index]
+    }
+    outdated = {
+        row["metadata"]["version"]
+        for row in collection.rows.values()
+        if row["metadata"]["status"] == "outdated"  # type: ignore[index]
+    }
+    document_ids = {row["metadata"]["document_id"] for row in collection.rows.values()}  # type: ignore[index]
+    assert document_ids == {"meridian-analytics-leave-policy"}
+    assert current == {"2026-03-01"}
+    assert outdated == {"2023-04-01"}
     index.close()
 
 

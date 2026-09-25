@@ -21,48 +21,48 @@ Return JSON with the keys supported, text, and citations.
 <example>
 <chunks>
 <chunk>
-chunk_id: ex-cups
-document_title: Single-use Plastic-free Policy
-section_path: Prohibited items
-Single-use plastic cups are banned in every office.
+chunk_id: ex-sign-in
+document_title: Visitor Policy
+section_path: Reception
+Visitors must sign in at reception before entering the office.
 </chunk>
 </chunks>
 <question>
-Are single-use plastic cups banned?
+Must visitors sign in?
 </question>
 <answer>
-{"supported": true, "text": "Yes. Single-use plastic cups are banned in every office.", "citations": [{"chunk_id": "ex-cups"}]}
+{"supported": true, "text": "Yes. Visitors must sign in at reception before entering the office.", "citations": [{"chunk_id": "ex-sign-in"}]}
 </answer>
 </example>
 <example>
 <chunks>
 <chunk>
-chunk_id: ex-list
-document_title: Single-use Plastic-free Policy
-section_path: Elimination & Substitution
-The purchase of the following items is prohibited:
-- Plastic cutlery (fork/spoon/knife)
-- Plastic plates, cups, and glasses
+chunk_id: ex-badges
+document_title: Visitor Policy
+section_path: Badges
+The following badge colors are issued at reception:
+- Blue badges for employees
+- Yellow badges for visitors
 </chunk>
 </chunks>
 <question>
-Are plastic cups prohibited?
+What color badge do visitors receive?
 </question>
 <answer>
-{"supported": true, "text": "Yes. Plastic plates, cups, and glasses are prohibited.", "citations": [{"chunk_id": "ex-list"}]}
+{"supported": true, "text": "Visitors receive yellow badges.", "citations": [{"chunk_id": "ex-badges"}]}
 </answer>
 </example>
 <example>
 <chunks>
 <chunk>
-chunk_id: ex-water
-document_title: Water Management Policy
-section_path: Monitoring
-Sites record monthly water use.
+chunk_id: ex-sign-in
+document_title: Visitor Policy
+section_path: Reception
+Visitors must sign in at reception before entering the office.
 </chunk>
 </chunks>
 <question>
-What is the deadline for travel expense reports?
+What is served in the office cafeteria?
 </question>
 <answer>
 {"supported": false, "text": "The corpus does not mention this.", "citations": []}

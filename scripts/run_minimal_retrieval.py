@@ -1,22 +1,25 @@
 """Minimal embed-store-retrieve loop on two known policy passages.
 
 Suggested Approach steps 2-3, before chunking, hybrid search, or reranking.
-One sentence from the Carbon Reduction Plan is embedded with
-sentence-transformers and stored in a Chroma collection. A second sentence,
-from the Single-use Plastic-free Policy, is added. A query for each policy
-must return that policy's sentence as the closer hit.
+One sentence from the selected corpus is embedded with sentence-transformers
+and stored in a Chroma collection. A second sentence from that corpus is added.
+A query for each passage must return that passage as the closer hit.
 
 Run from the repository root:
 
     uv run python scripts/run_minimal_retrieval.py
+    uv run python scripts/run_minimal_retrieval.py --corpus coforge
 """
 
 from __future__ import annotations
 
+import argparse
 from dataclasses import dataclass
 
 import chromadb
 from sentence_transformers import SentenceTransformer
+
+from rag.corpus import add_corpus_argument, resolve_corpus
 
 MODEL_NAME = "BAAI/bge-small-en-v1.5"
 # BGE retrieval models expect this prefix on queries only.
@@ -34,6 +37,21 @@ class Passage:
 
 
 # Short sentences copied from the extracted policies, not from the chunker.
+PTO = Passage(
+    passage_id="leave-pto-days",
+    source="POL-LV-500_leave_polic 1.md",
+    text="Employees accrue Paid Time Off at a rate of 20 days per year, credited monthly.",
+    query="How many days of Paid Time Off does the current Leave Policy accrue per year?",
+)
+MFA = Passage(
+    passage_id="security-mfa",
+    source="POL-ITS-700_it_data_security_policy.md.md",
+    text=(
+        "Multi-factor authentication (MFA) is required for all company accounts, "
+        "including email, VPN, and internal applications."
+    ),
+    query="Does the IT and Data Security Policy require multi-factor authentication?",
+)
 CARBON = Passage(
     passage_id="carbon-reduction-target",
     source="Carbon-Reduction-Plan.md",
@@ -56,10 +74,19 @@ PLASTIC = Passage(
     ),
     query="Are plastic plates, cups, and glasses prohibited within Coforge premises?",
 )
+PASSAGES = {
+    "meridian": (PTO, MFA),
+    "coforge": (CARBON, PLASTIC),
+}
 
 
 def main() -> None:
     """Embed one passage, store it, add the second, and query both."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    add_corpus_argument(parser)
+    corpus_name = resolve_corpus(parser.parse_args().corpus).name
+    first, second = PASSAGES[corpus_name]
+    print(f"Corpus: {corpus_name}", flush=True)
     print(f"Loading {MODEL_NAME}", flush=True)
     model = SentenceTransformer(MODEL_NAME, device="cpu")
     client = chromadb.EphemeralClient()
@@ -70,15 +97,15 @@ def main() -> None:
     )
 
     print("\nStep 2: embed and store one known passage", flush=True)
-    _store(collection, model, CARBON)
-    _confirm_stored(collection, CARBON)
-    _query(collection, model, CARBON.query, CARBON.passage_id)
+    _store(collection, model, first)
+    _confirm_stored(collection, first)
+    _query(collection, model, first.query, first.passage_id)
 
     print("\nStep 3: add a second passage and retrieve the closer one", flush=True)
-    _store(collection, model, PLASTIC)
+    _store(collection, model, second)
     print(f"Collection count: {collection.count()}", flush=True)
-    _query(collection, model, PLASTIC.query, PLASTIC.passage_id)
-    _query(collection, model, CARBON.query, CARBON.passage_id)
+    _query(collection, model, second.query, second.passage_id)
+    _query(collection, model, first.query, first.passage_id)
     print("\nBoth queries returned the more relevant passage.", flush=True)
 
 

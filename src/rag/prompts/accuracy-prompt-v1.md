@@ -21,13 +21,13 @@ Return JSON with the keys pass and reason. reason is an empty string when pass i
 
 <example>
 <question>
-By when must the items be eliminated?
+By when must the register be updated?
 </question>
 <reference>
-By Dec 2026.
+By June 2028.
 </reference>
 <answer>
-The deadline is December 2026.
+The deadline is June 2028.
 </answer>
 <verdict>
 {"pass": true, "reason": ""}
@@ -35,21 +35,21 @@ The deadline is December 2026.
 </example>
 <example>
 <question>
-By when must the items be eliminated?
+By when must the register be updated?
 </question>
 <reference>
-By Dec 2026.
+By June 2028.
 </reference>
 <answer>
-By Dec 2025.
+By June 2027.
 </answer>
 <verdict>
-{"pass": false, "reason": "The answer says Dec 2025. The reference says Dec 2026."}
+{"pass": false, "reason": "The answer says June 2027. The reference says June 2028."}
 </verdict>
 </example>
 <example>
 <question>
-What is the deadline for travel expense reports?
+What is served in the office cafeteria?
 </question>
 <reference>
 The corpus does not mention this.
