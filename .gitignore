@@ -12,7 +12,6 @@ htmlcov/
 data/chromadb/
 data/keyword/
 artifacts/
-runs/
 frontend/node_modules/
 frontend/dist/
 .tools/
