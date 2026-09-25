@@ -196,7 +196,8 @@ def extract(path: Path, output: Path) -> dict[str, Any]:
                     page_events.append(
                         (y, block["bbox"][0], {"kind": "heading", "text": text, "page": number})
                     )
-                elif re.match(r"^(?:[•\uf077]|\d+\.)($|\s)", text):
+                # "2030." is a wrapped year. Numbered items in this corpus have text after the marker.
+                elif re.match(r"^(?:[•\uf077](?:$|\s)|\d+\.\s)", text):
                     flush(pending, page_events, start_y, block["bbox"][0], number)
                     start_y = y
                     pending.append(re.sub(r"^[•\uf077]", "-", text))

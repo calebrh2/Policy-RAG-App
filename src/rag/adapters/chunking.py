@@ -2,8 +2,9 @@
 
 Purpose
 -------
-Splits a ``ParsedDocument`` on markdown heading paths. Size is a whitespace
-word count so chunking does not load an embedding model.
+Splits a ``ParsedDocument`` on markdown heading paths. The first pass is a
+whitespace word count. A rendered chunk over 512 tokens is measured with the
+``BAAI/bge-small-en-v1.5`` tokenizer.
 
 Contents
 --------
@@ -15,7 +16,7 @@ Contents
 from __future__ import annotations
 
 import re
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from typing import Protocol
 
@@ -23,6 +24,7 @@ from rag.adapters.parsing import ParsedBlock, ParsedDocument
 
 PREFERRED_MAX = 450
 HARD_MAX = 500
+TOKEN_MAX = 512
 _NUMBERED = re.compile(r"^\d+\.\s")
 _BULLET = re.compile(r"^-\s")
 _SENTENCE = re.compile(r"(?<=[a-z]{2}[.!?])\s+", flags=re.IGNORECASE)
@@ -76,9 +78,20 @@ class SectionChunker:
 
     Preferred size is 100 to 450 words. A chunk may be shorter when it is a
     complete section, rule, definition, target, or table. The hard maximum is
-    500 words, including the repeated title and section path. A single sentence
-    longer than that stays intact.
+    500 words, including the repeated title and section path. A paragraph over
+    that maximum splits on sentences. A rendered chunk over 512 tokens for
+    ``BAAI/bge-small-en-v1.5`` splits on table rows, then sentences, then
+    words. A single word longer than 512 tokens stays intact.
     """
+
+    def __init__(self, token_counter: Callable[[str], int] | None = None) -> None:
+        """Store the counter used for the 512-token cap.
+
+        Args:
+            token_counter: Returns the token length of a rendered chunk.
+                Defaults to the ``BAAI/bge-small-en-v1.5`` tokenizer.
+        """
+        self._token_counter = token_counter or _default_token_count
 
     def chunk(self, document: ParsedDocument) -> list[Chunk]:
         """Chunk one parsed document.
@@ -91,7 +104,7 @@ class SectionChunker:
         """
         chunks: list[Chunk] = []
         for blocks in _group_by_heading(document.blocks):
-            chunks.extend(_chunks_for_heading(document, blocks))
+            chunks.extend(_chunks_for_heading(document, blocks, self._token_counter))
         return chunks
 
 
@@ -113,12 +126,17 @@ def _group_by_heading(blocks: tuple[ParsedBlock, ...]) -> list[list[ParsedBlock]
     return groups
 
 
-def _chunks_for_heading(document: ParsedDocument, blocks: list[ParsedBlock]) -> list[Chunk]:
+def _chunks_for_heading(
+    document: ParsedDocument,
+    blocks: list[ParsedBlock],
+    count_tokens: Callable[[str], int],
+) -> list[Chunk]:
     """Pack one heading path into chunks.
 
     Args:
         document: Source document, used for the title prefix.
         blocks: Blocks that share one heading path.
+        count_tokens: Token length of a rendered chunk.
 
     Returns:
         Chunks for this heading.
@@ -136,8 +154,9 @@ def _chunks_for_heading(document: ParsedDocument, blocks: list[ParsedBlock]) -> 
             pages,
             kind,
             kind not in {"cover", "approval", "boilerplate"},
+            count_tokens=count_tokens,
         )
-    return _pack_general(document, section_path, _fold(blocks))
+    return _pack_general(document, section_path, _fold(blocks), count_tokens)
 
 
 def _section_kind(path: tuple[str, ...]) -> str:
@@ -227,7 +246,10 @@ def _fold(blocks: list[ParsedBlock]) -> list[_Piece]:
 
 
 def _pack_general(
-    document: ParsedDocument, section_path: str, pieces: list[_Piece]
+    document: ParsedDocument,
+    section_path: str,
+    pieces: list[_Piece],
+    count_tokens: Callable[[str], int],
 ) -> list[Chunk]:
     """Merge short prose and keep tables and lists intact.
 
@@ -235,6 +257,7 @@ def _pack_general(
         document: Source document.
         section_path: Heading path for every chunk from these pieces.
         pieces: Folded pieces.
+        count_tokens: Token length of a rendered chunk.
 
     Returns:
         Chunks for one general heading.
@@ -248,7 +271,9 @@ def _pack_general(
             return
         body = "\n\n".join(piece.body for piece in prose)
         pages = _combine_pages(piece.pages for piece in prose)
-        chunks.extend(_emit(document, section_path, body, pages, "prose", True))
+        chunks.extend(
+            _emit(document, section_path, body, pages, "prose", True, count_tokens=count_tokens)
+        )
         prose.clear()
 
     for piece in pieces:
@@ -257,11 +282,30 @@ def _pack_general(
             if intro and _words(_render(document.title, section_path, f"{intro}\n\n{piece.body}")) <= HARD_MAX:
                 prose.clear()
                 chunks.extend(
-                    _emit(document, section_path, f"{intro}\n\n{piece.body}", piece.pages, "table", True)
+                    _emit(
+                        document,
+                        section_path,
+                        f"{intro}\n\n{piece.body}",
+                        piece.pages,
+                        "table",
+                        True,
+                        count_tokens=count_tokens,
+                    )
                 )
             else:
                 flush_prose()
-                chunks.extend(_emit(document, section_path, piece.body, piece.pages, "table", True, intro))
+                chunks.extend(
+                    _emit(
+                        document,
+                        section_path,
+                        piece.body,
+                        piece.pages,
+                        "table",
+                        True,
+                        intro,
+                        count_tokens,
+                    )
+                )
             continue
         if piece.kind == "list":
             intro = "\n\n".join(item.body for item in prose)
@@ -269,16 +313,60 @@ def _pack_general(
             if intro and _words(intro) < 100 and _words(_render(document.title, section_path, combined)) <= PREFERRED_MAX:
                 prose.clear()
                 list_intro = intro
-                chunks.extend(_emit(document, section_path, combined, piece.pages, "list", True))
+                chunks.extend(
+                    _emit(
+                        document,
+                        section_path,
+                        combined,
+                        piece.pages,
+                        "list",
+                        True,
+                        count_tokens=count_tokens,
+                    )
+                )
             else:
                 flush_prose()
                 chunks.extend(
-                    _emit(document, section_path, piece.body, piece.pages, "list", True, list_intro)
+                    _emit(
+                        document,
+                        section_path,
+                        piece.body,
+                        piece.pages,
+                        "list",
+                        True,
+                        list_intro,
+                        count_tokens,
+                    )
                 )
             continue
         prose.append(piece)
     flush_prose()
     return chunks
+
+
+_bge_tokenizer = None
+
+
+def _default_token_count(text: str) -> int:
+    """Count tokens with the BGE tokenizer once the text can exceed 512.
+
+    Args:
+        text: Rendered chunk text.
+
+    Returns:
+        An upper bound when the string is at most 510 characters, otherwise
+        the tokenizer length including ``[CLS]`` and ``[SEP]``.
+    """
+    if len(text) <= TOKEN_MAX - 2:
+        return len(text) + 2
+    global _bge_tokenizer
+    if _bge_tokenizer is None:
+        from transformers import AutoTokenizer
+
+        from rag.adapters.embedding import DEFAULT_DENSE_MODEL
+
+        _bge_tokenizer = AutoTokenizer.from_pretrained(DEFAULT_DENSE_MODEL)
+    return len(_bge_tokenizer.encode(text, add_special_tokens=True, truncation=False))
 
 
 def _emit(
@@ -289,8 +377,11 @@ def _emit(
     content_type: str,
     searchable: bool,
     intro: str = "",
+    count_tokens: Callable[[str], int] = _default_token_count,
 ) -> list[Chunk]:
-    """Render one body, splitting it when the prefixed text exceeds 500 words.
+    """Render one body, splitting it when it exceeds a size limit.
+
+    Word packing runs first. A rendered chunk over 512 tokens is split after that.
 
     Args:
         document: Source document.
@@ -300,14 +391,20 @@ def _emit(
         content_type: Stored content type.
         searchable: Whether keyword search should index the chunk.
         intro: List or table introduction repeated on a continuation.
+        count_tokens: Token length of a rendered chunk.
 
     Returns:
         One chunk, or several when the body must be split.
     """
     parts = _split_body(document.title, section_path, body, intro)
+    fitted: list[tuple[str, str]] = []
+    for part_body, part_intro in parts:
+        fitted.extend(
+            _fit_token_limit(document.title, section_path, part_body, part_intro, count_tokens)
+        )
     return [
         _make_chunk(document, section_path, part_body, pages, content_type, searchable, part_intro)
-        for part_body, part_intro in parts
+        for part_body, part_intro in fitted
     ]
 
 
@@ -322,14 +419,15 @@ def _split_body(title: str, section_path: str, body: str, intro: str) -> list[tu
 
     Returns:
         ``(body, intro)`` pairs. The first pair keeps ``intro`` only when the
-        body was not itself a continuation. A body that is one sentence is
-        returned whole.
+        body was not itself a continuation. A paragraph over the hard maximum
+        splits on sentences. A body that is one sentence is returned whole.
     """
     if _words(_render(title, section_path, body, intro)) <= HARD_MAX:
         return [(body, intro)]
     paragraphs = [part.strip() for part in re.split(r"\n\s*\n", body) if part.strip()]
     if len(paragraphs) > 1:
-        return _pack_parts(title, section_path, paragraphs, intro)
+        expanded = _expand_long_paragraphs(title, section_path, paragraphs, intro)
+        return _pack_parts(title, section_path, expanded, intro)
     rows = _split_table_rows(body)
     if len(rows) > 1:
         return [(row, intro if index else "") for index, row in enumerate(rows)]
@@ -370,16 +468,212 @@ def _pack_parts(
     return packed
 
 
-def _split_table_rows(body: str) -> list[str]:
+def _expand_long_paragraphs(
+    title: str, section_path: str, paragraphs: list[str], intro: str
+) -> list[str]:
+    """Split only paragraphs whose rendered text exceeds the hard maximum.
+
+    Args:
+        title: Document title.
+        section_path: Heading path.
+        paragraphs: Paragraphs from one body, in order.
+        intro: Introduction counted in the rendered prefix.
+
+    Returns:
+        The same paragraphs, with each oversized paragraph replaced by its
+        sentences. A paragraph of one sentence stays whole.
+    """
+    expanded: list[str] = []
+    for paragraph in paragraphs:
+        if _words(_render(title, section_path, paragraph, intro)) <= HARD_MAX:
+            expanded.append(paragraph)
+            continue
+        sentences = [part.strip() for part in _SENTENCE.split(paragraph) if part.strip()]
+        if len(sentences) > 1:
+            expanded.extend(sentences)
+        else:
+            expanded.append(paragraph)
+    return expanded
+
+
+def _fit_token_limit(
+    title: str,
+    section_path: str,
+    body: str,
+    intro: str,
+    count_tokens: Callable[[str], int],
+) -> list[tuple[str, str]]:
+    """Split a rendered chunk that exceeds 512 tokens.
+
+    Args:
+        title: Document title.
+        section_path: Heading path.
+        body: Chunk body.
+        intro: Introduction repeated on a continuation.
+        count_tokens: Token length of a rendered chunk.
+
+    Returns:
+        ``(body, intro)`` pairs. A body at or under 512 tokens is unchanged.
+        A table splits between rows before a row is cut. A single word that
+        still exceeds the cap stays intact.
+    """
+    if not _over_token_limit(title, section_path, body, intro, count_tokens):
+        return [(body, intro)]
+    rows = _split_table_rows(
+        body,
+        lambda text: _over_token_limit(title, section_path, text, intro, count_tokens),
+    )
+    if len(rows) > 1:
+        fitted: list[tuple[str, str]] = []
+        for index, row in enumerate(rows):
+            row_intro = intro if index else ""
+            fitted.extend(_fit_token_limit(title, section_path, row, row_intro, count_tokens))
+        return fitted
+    return _fit_sentences_then_words(title, section_path, body, intro, count_tokens)
+
+
+def _fit_sentences_then_words(
+    title: str,
+    section_path: str,
+    body: str,
+    intro: str,
+    count_tokens: Callable[[str], int],
+) -> list[tuple[str, str]]:
+    """Split an oversized body on sentences, then on words.
+
+    Args:
+        title: Document title.
+        section_path: Heading path.
+        body: Chunk body that is already over the token cap.
+        intro: Introduction repeated on a continuation.
+        count_tokens: Token length of a rendered chunk.
+
+    Returns:
+        Packed ``(body, intro)`` pairs. One word over the cap is returned whole.
+    """
+    if not _over_token_limit(title, section_path, body, intro, count_tokens):
+        return [(body, intro)]
+    sentences = [part.strip() for part in _SENTENCE.split(body) if part.strip()]
+    if len(sentences) > 1:
+        return _pack_token_parts(
+            title, section_path, sentences, intro, count_tokens, "\n\n", split_words=True
+        )
+    return _fit_words(title, section_path, body, intro, count_tokens)
+
+
+def _fit_words(
+    title: str,
+    section_path: str,
+    body: str,
+    intro: str,
+    count_tokens: Callable[[str], int],
+) -> list[tuple[str, str]]:
+    """Split an oversized sentence on whitespace.
+
+    Args:
+        title: Document title.
+        section_path: Heading path.
+        body: One sentence, or text with no sentence boundary.
+        intro: Introduction repeated on a continuation.
+        count_tokens: Token length of a rendered chunk.
+
+    Returns:
+        Packed ``(body, intro)`` pairs. One word over the cap is returned whole.
+    """
+    if not _over_token_limit(title, section_path, body, intro, count_tokens):
+        return [(body, intro)]
+    words = body.split()
+    if len(words) > 1:
+        return _pack_token_parts(
+            title, section_path, words, intro, count_tokens, " ", split_words=False
+        )
+    return [(body, intro)]
+
+
+def _pack_token_parts(
+    title: str,
+    section_path: str,
+    parts: list[str],
+    intro: str,
+    count_tokens: Callable[[str], int],
+    joiner: str,
+    split_words: bool,
+) -> list[tuple[str, str]]:
+    """Pack parts until the next one would exceed 512 tokens.
+
+    Args:
+        title: Document title.
+        section_path: Heading path.
+        parts: Sentences or words.
+        intro: Introduction repeated on each packed piece.
+        count_tokens: Token length of a rendered chunk.
+        joiner: String placed between packed parts.
+        split_words: When true, a part that is itself over the cap splits on words.
+
+    Returns:
+        Packed ``(body, intro)`` pairs.
+    """
+    packed: list[tuple[str, str]] = []
+    buffer: list[str] = []
+
+    def flush() -> None:
+        if buffer:
+            packed.append((joiner.join(buffer), intro))
+            buffer.clear()
+
+    for part in parts:
+        candidate = joiner.join([*buffer, part])
+        if buffer and _over_token_limit(title, section_path, candidate, intro, count_tokens):
+            flush()
+        if (
+            not buffer
+            and split_words
+            and _over_token_limit(title, section_path, part, intro, count_tokens)
+        ):
+            packed.extend(_fit_words(title, section_path, part, intro, count_tokens))
+            continue
+        buffer.append(part)
+    flush()
+    return packed
+
+
+def _over_token_limit(
+    title: str,
+    section_path: str,
+    body: str,
+    intro: str,
+    count_tokens: Callable[[str], int],
+) -> bool:
+    """Return whether the rendered chunk is over 512 tokens.
+
+    Args:
+        title: Document title.
+        section_path: Heading path.
+        body: Chunk body.
+        intro: Introduction included in the prefix.
+        count_tokens: Token length of a rendered chunk.
+
+    Returns:
+        True when the rendered text exceeds ``TOKEN_MAX``.
+    """
+    return count_tokens(_render(title, section_path, body, intro)) > TOKEN_MAX
+
+
+def _split_table_rows(
+    body: str, exceeds: Callable[[str], bool] | None = None
+) -> list[str]:
     """Split a markdown table between rows once it is too long.
 
     Args:
         body: Table text, optionally with a units line and footnotes.
+        exceeds: Returns whether one table piece is too long. Defaults to the
+            500-word hard maximum.
 
     Returns:
         One string when the body is not a multi-row table. Otherwise each
         string repeats the header row.
     """
+    too_long = exceeds or (lambda text: _words(text) > HARD_MAX)
     lines = body.splitlines()
     separator = next((index for index, line in enumerate(lines) if re.match(r"^\|\s*---", line)), None)
     if separator is None or separator + 1 >= len(lines):
@@ -396,7 +690,7 @@ def _split_table_rows(body: str) -> list[str]:
     for row in rows:
         trial_rows = [*bucket, row]
         trial = "\n".join([*([prelude] if prelude else []), *header, *trial_rows])
-        if bucket and _words(trial) > HARD_MAX:
+        if bucket and too_long(trial):
             pieces.append("\n".join([*([prelude] if prelude and not pieces else []), *header, *bucket]))
             bucket = [row]
         else:

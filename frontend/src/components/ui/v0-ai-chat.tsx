@@ -11,6 +11,7 @@ import {
     MonitorIcon,
     CircleUserRound,
     ArrowUpIcon,
+    LoaderCircle,
     Paperclip,
     PlusIcon,
 } from "lucide-react";
@@ -71,41 +72,82 @@ function useAutoResizeTextarea({
     return { textareaRef, adjustHeight };
 }
 
+interface Citation {
+    chunk_id: string;
+    document_title: string;
+    section_path: string;
+}
+
+interface QueryAnswer {
+    text: string;
+    supported: boolean;
+    citations: Citation[];
+}
+
+interface ChatTurn {
+    id: number;
+    query: string;
+    answer: QueryAnswer | null;
+    error: string | null;
+    pending: boolean;
+}
+
 export function VercelV0Chat() {
     const [value, setValue] = useState("");
-    const [status, setStatus] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [turns, setTurns] = useState<ChatTurn[]>([]);
+    const nextTurnId = useRef(1);
+    const historyRef = useRef<HTMLDivElement>(null);
     const { textareaRef, adjustHeight } = useAutoResizeTextarea({
         minHeight: 60,
         maxHeight: 200,
     });
 
+    useEffect(() => {
+        const history = historyRef.current;
+        if (!history) return;
+        history.scrollTop = history.scrollHeight;
+    }, [turns]);
+
     const submit = async () => {
         const text = value.trim();
-        if (!text) return;
+        if (!text || loading) return;
 
+        const id = nextTurnId.current++;
+        setTurns((current) => [
+            ...current,
+            { id, query: text, answer: null, error: null, pending: true },
+        ]);
         setValue("");
         adjustHeight(true);
-        setStatus("Sending…");
+        setLoading(true);
+
+        const finish = (update: Partial<ChatTurn>) => {
+            setTurns((current) =>
+                current.map((turn) =>
+                    turn.id === id ? { ...turn, pending: false, ...update } : turn
+                )
+            );
+        };
 
         try {
-            const response = await fetch("/ingest", {
+            const response = await fetch("/query", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ text }),
             });
 
             if (!response.ok) {
-                setStatus("Ingest failed");
+                finish({ error: "The query failed" });
                 return;
             }
 
-            const data = (await response.json()) as {
-                ok: boolean;
-                received: string;
-            };
-            setStatus(data.ok ? `Ingested: ${data.received}` : "Ingest failed");
+            const data = (await response.json()) as QueryAnswer;
+            finish({ answer: data });
         } catch {
-            setStatus("Could not reach the API");
+            finish({ error: "Could not reach the API" });
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -119,11 +161,79 @@ export function VercelV0Chat() {
     return (
         <div className="flex flex-col items-center w-full max-w-4xl mx-auto p-4 space-y-8">
             <h1 className="text-4xl font-bold text-black dark:text-white">
-                What can I help you ship?
+                Ask the policy corpus
             </h1>
 
             <div className="w-full">
-                <div className="relative bg-neutral-900 rounded-xl border border-neutral-800">
+                <div className="relative flex flex-col bg-neutral-900 rounded-xl border border-neutral-800">
+                    {turns.length > 0 ? (
+                        <div
+                            ref={historyRef}
+                            className="max-h-96 space-y-4 overflow-y-auto px-4 pb-3 pt-4"
+                        >
+                            {turns.map((turn) => (
+                                <div key={turn.id} className="space-y-3">
+                                    <div className="flex justify-end">
+                                        <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-neutral-800 px-3 py-2 text-sm text-white">
+                                            {turn.query}
+                                        </p>
+                                    </div>
+                                    {turn.pending ? (
+                                        <div className="flex items-center text-neutral-400">
+                                            <LoaderCircle className="h-4 w-4 animate-spin" />
+                                            <span className="sr-only">
+                                                Searching the policies
+                                            </span>
+                                        </div>
+                                    ) : null}
+                                    {turn.error ? (
+                                        <p className="text-sm text-neutral-400">
+                                            {turn.error}
+                                        </p>
+                                    ) : null}
+                                    {turn.answer ? (
+                                        <div className="space-y-3 text-left text-sm text-neutral-200">
+                                            <p className="whitespace-pre-wrap">
+                                                {turn.answer.text}
+                                            </p>
+                                            {turn.answer.citations.length > 0 ? (
+                                                <div className="space-y-2">
+                                                    <p className="text-xs uppercase tracking-wide text-neutral-500">
+                                                        Sources
+                                                    </p>
+                                                    <ul className="space-y-2">
+                                                        {turn.answer.citations.map(
+                                                            (citation, index) => (
+                                                                <li
+                                                                    key={`${citation.chunk_id}-${index}`}
+                                                                    className="rounded-lg border border-neutral-800 px-3 py-2"
+                                                                >
+                                                                    <p className="text-neutral-100">
+                                                                        {
+                                                                            citation.document_title
+                                                                        }
+                                                                        {citation.section_path
+                                                                            ? ` — ${citation.section_path}`
+                                                                            : ""}
+                                                                    </p>
+                                                                </li>
+                                                            )
+                                                        )}
+                                                    </ul>
+                                                </div>
+                                            ) : null}
+                                        </div>
+                                    ) : null}
+                                </div>
+                            ))}
+                        </div>
+                    ) : null}
+
+                    <div
+                        className={cn(
+                            turns.length > 0 && "border-t border-neutral-800"
+                        )}
+                    >
                     <div className="overflow-y-auto">
                         <Textarea
                             ref={textareaRef}
@@ -133,7 +243,7 @@ export function VercelV0Chat() {
                                 adjustHeight();
                             }}
                             onKeyDown={handleKeyDown}
-                            placeholder="Ask v0 a question..."
+                            placeholder="Ask a question about the policies..."
                             className={cn(
                                 "w-full px-4 py-3",
                                 "resize-none",
@@ -195,13 +305,8 @@ export function VercelV0Chat() {
                             </button>
                         </div>
                     </div>
+                    </div>
                 </div>
-
-                {status ? (
-                    <p className="mt-3 text-center text-sm text-neutral-400">
-                        {status}
-                    </p>
-                ) : null}
 
                 <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
                     <ActionButton

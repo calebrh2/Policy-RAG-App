@@ -99,9 +99,7 @@ In alignment with our goal to be “net-zero by 2050”, we have undertaken the 
 
 - 100% utilization of Piped Natural Gas (PNG) in cafeteria operations.
 
-- Procure 10% green energy contributing to total energy consumption by 2025 and achieve ~ 50% by
-
-2030.
+- Procure 10% green energy contributing to total energy consumption by 2025 and achieve ~ 50% by 2030.
 
 Support renewable energy transition to 100% renewable energy by 2050 by committing to the RE100 global initiative. Through this we pledge to have 100% of our electricity sourced from renewable sources by 2050. We aim to engage in community programs to create more renewable energy in the form of wind and solar farms, along with hydro-electric energy.
 
