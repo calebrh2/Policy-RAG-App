@@ -276,6 +276,10 @@ def _parse(raw: str) -> _DraftAnswer:
         payload = json.loads(raw)
     except json.JSONDecodeError as exc:
         raise ValueError("Model returned invalid JSON.") from exc
+    if isinstance(payload, dict) and isinstance(payload.get("citations"), list):
+        payload["citations"] = [
+            {"chunk_id": item} if isinstance(item, str) else item for item in payload["citations"]
+        ]
     try:
         return _DraftAnswer.model_validate(payload)
     except ValidationError as exc:

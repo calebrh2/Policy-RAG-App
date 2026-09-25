@@ -5,8 +5,9 @@ Run from the repository root, after the indexes exist and the chat model is set:
     uv run python scripts/evaluate_generation.py
 
 Each golden question is retrieved, reranked, and answered once. Citation ids are
-checked on the raw completion. A judge then scores faithfulness against the
-cited chunks and accuracy against the gold answer. The file lands in
+checked on the raw completion. The answer text is checked for the expected key
+facts. A judge then scores faithfulness against the cited chunks and accuracy
+against the gold answer. The file lands in
 ``runs/generation/generation-<UTC timestamp>.json``.
 """
 
@@ -32,6 +33,7 @@ from rag.judge import (
     _ACCURACY_PROMPT,
     _FAITHFULNESS_PROMPT,
     citations_ok,
+    contains_key_information,
     judge_accuracy,
     judge_faithfulness,
     raw_citation_ids,
@@ -117,9 +119,15 @@ def score_case(
             faithful_reason="",
             accurate=False,
             accurate_reason="",
+            key_information=False,
             error=str(exc),
         )
-    raw_ids = raw_citation_ids(recorder.raw) if recorder.raw else []
+    try:
+        raw_ids = raw_citation_ids(recorder.raw) if recorder.raw else []
+        citations = citations_ok(raw_ids, chunks)
+    except ValueError:
+        raw_ids = []
+        citations = False
     faithful = judge_faithfulness(case.question, answer, chunks, model)
     accurate = judge_accuracy(case.question, answer, case.gold_answer, model)
     return _record(
@@ -128,12 +136,17 @@ def score_case(
         gold_in_prompt=gold_in_prompt,
         answer=answer,
         raw_ids=raw_ids,
-        citations=citations_ok(raw_ids, chunks),
+        citations=citations,
         refusal=refusal_ok(answer),
         faithful=faithful.passed,
         faithful_reason=faithful.reason,
         accurate=accurate.passed,
         accurate_reason=accurate.reason,
+        key_information=contains_key_information(
+            answer.text,
+            case.key_facts,
+            exact=not case.expect_supported,
+        ),
         error=None,
     )
 
@@ -156,14 +169,16 @@ def main() -> None:
             queries.append(record)
             print(
                 f"  citations_ok={record['citations_ok']} refusal_ok={record['refusal_ok']} "
-                f"faithful={record['faithful']} accurate={record['accurate']}",
+                f"faithful={record['faithful']} accurate={record['accurate']} "
+                f"key_information={record['key_information']}",
                 flush=True,
             )
     means = _means(queries)
     print(
         "Means "
         f"citations_ok={means['citations_ok']:.3f} refusal_ok={means['refusal_ok']:.3f} "
-        f"faithful={means['faithful']:.3f} accurate={means['accurate']:.3f}",
+        f"faithful={means['faithful']:.3f} accurate={means['accurate']:.3f} "
+        f"key_information={means['key_information']:.3f}",
         flush=True,
     )
     payload = {
@@ -227,6 +242,7 @@ def _record(
     faithful_reason: str,
     accurate: bool,
     accurate_reason: str,
+    key_information: bool,
     error: str | None,
 ) -> dict[str, object]:
     """Build one query record.
@@ -244,6 +260,7 @@ def _record(
         faithful_reason: The faithfulness failure reason, or an empty string.
         accurate: Whether the judge passed accuracy.
         accurate_reason: The accuracy failure reason, or an empty string.
+        key_information: Whether the answer text includes every expected fact.
         error: The generation error, or None when generation returned.
 
     Returns:
@@ -262,6 +279,8 @@ def _record(
         "refusal_ok": refusal,
         "faithful": faithful,
         "accurate": accurate,
+        "key_information": key_information,
+        "key_facts": list(case.key_facts),
         "faithfulness_reason": faithful_reason,
         "accuracy_reason": accurate_reason,
         "error": error,
@@ -269,7 +288,7 @@ def _record(
 
 
 def _means(queries: Sequence[Mapping[str, object]]) -> dict[str, float]:
-    """Average the four boolean checks.
+    """Average the boolean checks.
 
     Args:
         queries: Query records from ``score_case``.
@@ -282,6 +301,7 @@ def _means(queries: Sequence[Mapping[str, object]]) -> dict[str, float]:
         "refusal_ok": _rate(queries, "refusal_ok"),
         "faithful": _rate(queries, "faithful"),
         "accurate": _rate(queries, "accurate"),
+        "key_information": _rate(queries, "key_information"),
     }
 
 

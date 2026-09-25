@@ -109,6 +109,26 @@ def test_supported_false_returns_the_refusal() -> None:
     assert answer.citations == []
 
 
+def test_string_citations_are_accepted() -> None:
+    chunk = _chunk("cups", "plastic cups are banned")
+    model = FakeChat(
+        json.dumps(
+            {
+                "supported": True,
+                "text": "Plastic cups are banned.",
+                "citations": ["cups"],
+            }
+        )
+    )
+
+    answer = generate("cups", [chunk], model)
+
+    assert answer.supported is True
+    assert answer.text == "Plastic cups are banned."
+    assert answer.citations[0].chunk_id == "cups"
+    assert answer.citations[0].document_title == "Plastic Policy"
+
+
 def test_invalid_json_raises() -> None:
     chunk = _chunk("cups", "plastic cups are banned")
     model = FakeChat("not json")

@@ -8,7 +8,7 @@ the corpus cannot answer.
 
 Contents
 --------
-- ``EvalCase``: one question, its expected chunk, and its gold answer.
+- ``EvalCase``: one question, its expected chunk, gold answer, and key facts.
 - ``CASES``: questions the corpus can answer.
 - ``REFUSAL_CASES``: questions the corpus cannot answer.
 - ``GENERATION_CASES``: ``CASES`` followed by ``REFUSAL_CASES``.
@@ -27,8 +27,9 @@ class EvalCase:
 
     ``document_id``, ``section_path``, and ``needle`` identify the current
     chunk that contains the answer. They are empty when the corpus cannot
-    answer. ``gold_answer`` is the reference reply. ``expect_supported`` is
-    false when that reply is the refusal.
+    answer. ``gold_answer`` is the reference reply. ``key_facts`` are the
+    phrases a generated answer must contain. ``expect_supported`` is false
+    when that reply is the refusal.
     """
 
     case_id: str
@@ -37,6 +38,7 @@ class EvalCase:
     section_path: str
     needle: str
     gold_answer: str
+    key_facts: tuple[str, ...]
     expect_supported: bool
 
 
@@ -51,6 +53,7 @@ CASES: tuple[EvalCase, ...] = (
             'Coforge defines "Water Positive" as replenishing more water than is consumed '
             "across owned operations."
         ),
+        key_facts=("replenishing more water than is consumed",),
         expect_supported=True,
     ),
     EvalCase(
@@ -60,6 +63,7 @@ CASES: tuple[EvalCase, ...] = (
         section_path="Water Risk Assessment",
         needle="WRI Aqueduct Water Risk Atlas",
         gold_answer="The WRI Aqueduct Water Risk Atlas or the WWF Water Risk Filter.",
+        key_facts=("WRI Aqueduct Water Risk Atlas", "WWF Water Risk Filter"),
         expect_supported=True,
     ),
     EvalCase(
@@ -72,6 +76,7 @@ CASES: tuple[EvalCase, ...] = (
             "Through Coforge's Whistleblower channel or the applicable local grievance "
             "redressal mechanism."
         ),
+        key_facts=("Whistleblower channel",),
         expect_supported=True,
     ),
     EvalCase(
@@ -81,6 +86,7 @@ CASES: tuple[EvalCase, ...] = (
         section_path="Water Recycling, Harvesting and Reuse",
         needle="flushing, irrigation, landscaping",
         gold_answer="Flushing, irrigation, landscaping, and HVAC/cooling systems.",
+        key_facts=("flushing, irrigation, landscaping",),
         expect_supported=True,
     ),
     EvalCase(
@@ -90,6 +96,7 @@ CASES: tuple[EvalCase, ...] = (
         section_path="Elimination & Substitution (Mandatory Prohibition)",
         needle="Plastic plates, cups, and glasses",
         gold_answer="Yes. Plastic plates, cups, and glasses are prohibited.",
+        key_facts=("Plastic plates, cups, and glasses",),
         expect_supported=True,
     ),
     EvalCase(
@@ -99,6 +106,7 @@ CASES: tuple[EvalCase, ...] = (
         section_path="Exemptions/Waiver",
         needle="Site Admin Head and Sustainability/ESG",
         gold_answer="The Site Admin Head and Sustainability/ESG.",
+        key_facts=("Site Admin Head and Sustainability/ESG",),
         expect_supported=True,
     ),
     EvalCase(
@@ -108,6 +116,7 @@ CASES: tuple[EvalCase, ...] = (
         section_path="Targets & KPIs (India – All Sites) > Targets",
         needle="100% elimination of Policy-prohibited SUP items",
         gold_answer="By Dec 2026.",
+        key_facts=("Dec 2026",),
         expect_supported=True,
     ),
     EvalCase(
@@ -117,6 +126,7 @@ CASES: tuple[EvalCase, ...] = (
         section_path="Emissions reduction targets",
         needle="reduce them by 20% by 2030",
         gold_answer="Relatively reduce emissions by 20% by 2030 from the baseline year.",
+        key_facts=("20%", "2030"),
         expect_supported=True,
     ),
     EvalCase(
@@ -126,6 +136,7 @@ CASES: tuple[EvalCase, ...] = (
         section_path="Carbon Reduction Initiatives",
         needle="ISO 14001:2015 & ISO 45001:2018",
         gold_answer="ISO 14001:2015 and ISO 45001:2018.",
+        key_facts=("ISO 14001:2015", "ISO 45001:2018"),
         expect_supported=True,
     ),
 )
@@ -139,6 +150,7 @@ REFUSAL_CASES: tuple[EvalCase, ...] = (
         section_path="",
         needle="",
         gold_answer=REFUSAL,
+        key_facts=(REFUSAL,),
         expect_supported=False,
     ),
     EvalCase(
@@ -148,6 +160,7 @@ REFUSAL_CASES: tuple[EvalCase, ...] = (
         section_path="",
         needle="",
         gold_answer=REFUSAL,
+        key_facts=(REFUSAL,),
         expect_supported=False,
     ),
 )

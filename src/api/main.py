@@ -15,6 +15,7 @@ Contents
 from __future__ import annotations
 
 import threading
+from typing import cast
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -120,7 +121,7 @@ def answer_query(query_text: str) -> Answer:
     global _collection, _reranker, _model
     with _lock:
         if _collection is None:
-            _collection = get_collection()
+            _collection = cast(ChunkSearch, get_collection())
         if _reranker is None:
             _reranker = default_reranker()
         if _model is None:

@@ -163,6 +163,13 @@ def test_raw_citation_ids_preserve_order() -> None:
     assert raw_citation_ids(raw) == ["cups", "plates"]
 
 
+def test_raw_citation_ids_accept_a_string_id() -> None:
+    """A citation that is only the chunk id is kept."""
+    raw = json.dumps({"supported": True, "text": "Yes.", "citations": ["cups"]})
+
+    assert raw_citation_ids(raw) == ["cups"]
+
+
 def test_raw_citation_ids_reject_invalid_json() -> None:
     """A completion that is not an answer JSON raises."""
     with pytest.raises(ValueError, match="not JSON"):

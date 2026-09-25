@@ -2,16 +2,17 @@
 
 Purpose
 -------
-Scores a generated answer. Citation and refusal checks are deterministic.
-Faithfulness and accuracy are pass/fail judgments from a chat model. The
-rubrics live in versioned prompt files. ``_FAITHFULNESS_PROMPT`` and
-``_ACCURACY_PROMPT`` select those files.
+Scores a generated answer. Citation, refusal, and key-fact checks are
+deterministic. Faithfulness and accuracy are pass/fail judgments from a chat
+model. The rubrics live in versioned prompt files. ``_FAITHFULNESS_PROMPT``
+and ``_ACCURACY_PROMPT`` select those files.
 
 Contents
 --------
 - ``Verdict``: one judge result.
 - ``citations_ok``: every cited id names a sent chunk with a document title.
 - ``refusal_ok``: an unsupported answer is the fixed refusal.
+- ``contains_key_information``: the answer text includes every expected fact.
 - ``raw_citation_ids``: chunk ids from a generation completion.
 - ``judge_faithfulness``: judge the answer against the chunks it cites.
 - ``judge_accuracy``: judge the answer against the gold answer.
@@ -115,6 +116,28 @@ def refusal_ok(answer: Answer) -> bool:
     return answer.text == REFUSAL and not answer.citations
 
 
+def contains_key_information(text: str, key_facts: Sequence[str], *, exact: bool = False) -> bool:
+    """Return whether the answer text includes every expected fact.
+
+    Matching is case-insensitive. ``exact`` requires the stripped text to equal
+    the one fact, which is how a refusal is checked.
+
+    Args:
+        text: The reply being checked.
+        key_facts: Phrases the reply must contain. Empty fails.
+        exact: When true, the stripped text must equal the single fact.
+
+    Returns:
+        True when every fact is present, or when the text equals that one fact.
+    """
+    if not key_facts:
+        return False
+    if exact:
+        return len(key_facts) == 1 and text.strip() == key_facts[0]
+    folded = text.casefold()
+    return all(fact.casefold() in folded for fact in key_facts)
+
+
 def raw_citation_ids(raw: str) -> list[str]:
     """Return chunk ids from a generation completion.
 
@@ -131,6 +154,10 @@ def raw_citation_ids(raw: str) -> list[str]:
         payload = json.loads(raw)
     except json.JSONDecodeError as exc:
         raise ValueError("Generation completion is not JSON.") from exc
+    if isinstance(payload, dict) and isinstance(payload.get("citations"), list):
+        payload["citations"] = [
+            {"chunk_id": item} if isinstance(item, str) else item for item in payload["citations"]
+        ]
     try:
         answer = _RawAnswer.model_validate(payload)
     except ValidationError as exc:

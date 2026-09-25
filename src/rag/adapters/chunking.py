@@ -18,7 +18,10 @@ from __future__ import annotations
 import re
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol, cast
+
+if TYPE_CHECKING:
+    from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
 from rag.adapters.parsing import ParsedBlock, ParsedDocument
 
@@ -344,7 +347,7 @@ def _pack_general(
     return chunks
 
 
-_bge_tokenizer = None
+_bge_tokenizer: PreTrainedTokenizerBase | None = None
 
 
 def _default_token_count(text: str) -> int:
@@ -362,10 +365,12 @@ def _default_token_count(text: str) -> int:
     global _bge_tokenizer
     if _bge_tokenizer is None:
         from transformers import AutoTokenizer
+        from transformers.tokenization_utils_base import PreTrainedTokenizerBase
 
         from rag.adapters.embedding import DEFAULT_DENSE_MODEL
 
-        _bge_tokenizer = AutoTokenizer.from_pretrained(DEFAULT_DENSE_MODEL)
+        loaded = AutoTokenizer.from_pretrained(DEFAULT_DENSE_MODEL)  # type: ignore[no-untyped-call]
+        _bge_tokenizer = cast(PreTrainedTokenizerBase, loaded)
     return len(_bge_tokenizer.encode(text, add_special_tokens=True, truncation=False))
 
 
