@@ -1,0 +1,274 @@
+{
+  "carbon_current_target": {
+    "evidence_groups": [
+      [
+        "carbon-reduction-plan:2024-03-28:emissions-reduction-targets:01:7a7453cd"
+      ]
+    ],
+    "fact_checks": [
+      [
+        "20\\s*%.{0,100}2030",
+        "relativ"
+      ],
+      [
+        "baseline"
+      ]
+    ],
+    "forbidden_patterns": [],
+    "abstention_patterns": [],
+    "review_status": "AI source-audited; human review pending"
+  },
+  "carbon_historical_target": {
+    "evidence_groups": [
+      [
+        "carbon-reduction-plan:2022-09-15:emissions-reduction-targets:01:b4f7eb47"
+      ]
+    ],
+    "fact_checks": [
+      [
+        "15\\s*%.{0,100}2027",
+        "relativ"
+      ],
+      [
+        "baseline"
+      ]
+    ],
+    "forbidden_patterns": [],
+    "abstention_patterns": [],
+    "review_status": "AI source-audited; human review pending"
+  },
+  "carbon_target_comparison": {
+    "evidence_groups": [
+      [
+        "carbon-reduction-plan:2022-09-15:emissions-reduction-targets:01:b4f7eb47"
+      ],
+      [
+        "carbon-reduction-plan:2024-03-28:emissions-reduction-targets:01:7a7453cd"
+      ]
+    ],
+    "fact_checks": [
+      [
+        "15\\s*%.{0,100}2027",
+        "baseline"
+      ],
+      [
+        "20\\s*%.{0,100}2030",
+        "baseline"
+      ]
+    ],
+    "forbidden_patterns": [],
+    "abstention_patterns": [],
+    "review_status": "AI source-audited; human review pending"
+  },
+  "carbon_uk_total_emissions": {
+    "evidence_groups": [
+      [
+        "carbon-reduction-plan:2024-03-28:current-year-emission-2023-unit-of-measurement-tco2e:01:c8e22bad"
+      ]
+    ],
+    "fact_checks": [
+      [
+        "259\\.69\\b",
+        "tco2e|tonnes? of (?:co2|carbon dioxide) equivalent"
+      ]
+    ],
+    "forbidden_patterns": [],
+    "abstention_patterns": [],
+    "review_status": "AI source-audited; human review pending"
+  },
+  "carbon_india_scope2": {
+    "evidence_groups": [
+      [
+        "carbon-reduction-plan:2024-03-28:current-year-emission-2023-unit-of-measurement-tco2e:01:c8e22bad"
+      ]
+    ],
+    "fact_checks": [
+      [
+        "6746\\.70\\b",
+        "tco2e|tonnes? of (?:co2|carbon dioxide) equivalent"
+      ]
+    ],
+    "forbidden_patterns": [],
+    "abstention_patterns": [],
+    "review_status": "AI source-audited; human review pending"
+  },
+  "carbon_ev_targets": {
+    "evidence_groups": [
+      [
+        "carbon-reduction-plan:2024-03-28:carbon-reduction-initiatives:01:9c065691"
+      ]
+    ],
+    "fact_checks": [
+      [
+        "10\\s*%.{0,100}2025"
+      ],
+      [
+        "(?:approximately|about|around|~|roughly)\\s*50\\s*%.{0,100}2030"
+      ]
+    ],
+    "forbidden_patterns": [],
+    "abstention_patterns": [],
+    "review_status": "AI source-audited; human review pending"
+  },
+  "plastic_waiver_approval": {
+    "evidence_groups": [
+      [
+        "single-use-plastic-free-policy:2026-03-10:exemptions-waiver:01:bf9fe93c"
+      ]
+    ],
+    "fact_checks": [
+      [
+        "written",
+        "site admin(?:istration)? head",
+        "sustainability|\\besg\\b"
+      ],
+      [
+        "quarterly|every three months|every 3 months"
+      ]
+    ],
+    "forbidden_patterns": [],
+    "abstention_patterns": [],
+    "review_status": "AI source-audited; human review pending"
+  },
+  "plastic_segmentation_target": {
+    "evidence_groups": [
+      [
+        "single-use-plastic-free-policy:2026-03-10:targets:01:01a70e5c"
+      ]
+    ],
+    "fact_checks": [
+      [
+        "(?:at least|≥|>=|minimum(?: of)?)\\s*90\\s*%"
+      ],
+      [
+        "sept(?:ember)?\\s*2026"
+      ]
+    ],
+    "forbidden_patterns": [],
+    "abstention_patterns": [],
+    "review_status": "AI source-audited; human review pending"
+  },
+  "plastic_contract_target": {
+    "evidence_groups": [
+      [
+        "single-use-plastic-free-policy:2026-03-10:targets:01:01a70e5c"
+      ]
+    ],
+    "fact_checks": [
+      [
+        "(?:100\\s*%|all)",
+        "new",
+        "renew",
+        "sup.free|single.use plastic.free",
+        "dec(?:ember)?\\s*2026"
+      ]
+    ],
+    "forbidden_patterns": [],
+    "abstention_patterns": [],
+    "review_status": "AI source-audited; human review pending"
+  },
+  "plastic_carry_bag_rule": {
+    "evidence_groups": [
+      [
+        "single-use-plastic-free-policy:2026-03-10:a2-packaging-wrapping-carry-bags:01:e56417ad",
+        "single-use-plastic-free-policy:2026-03-10:elimination-substitution-mandatory-prohibition:01:c8c06ec6"
+      ]
+    ],
+    "fact_checks": [
+      [
+        "below|less than",
+        "minimum thickness",
+        "central",
+        "state"
+      ],
+      [
+        "stricter|more stringent"
+      ]
+    ],
+    "forbidden_patterns": [],
+    "abstention_patterns": [],
+    "review_status": "AI source-audited; human review pending"
+  },
+  "water_positive_ambition": {
+    "evidence_groups": [
+      [
+        "water-management-policy:2026-08-10:objectives-and-targets:01:9cdd7531",
+        "water-management-policy:2026-08-10:purpose:01:cda7112d"
+      ]
+    ],
+    "fact_checks": [
+      [
+        "2040",
+        "owned"
+      ]
+    ],
+    "forbidden_patterns": [],
+    "abstention_patterns": [],
+    "review_status": "AI source-audited; human review pending"
+  },
+  "water_risk_assessment_target": {
+    "evidence_groups": [
+      [
+        "water-management-policy:2026-08-10:objectives-and-targets:01:9cdd7531"
+      ]
+    ],
+    "fact_checks": [
+      [
+        "2030",
+        "owned",
+        "prioriti[sz]ed leased"
+      ]
+    ],
+    "forbidden_patterns": [],
+    "abstention_patterns": [],
+    "review_status": "AI source-audited; human review pending"
+  },
+  "water_reuse_applications": {
+    "evidence_groups": [
+      [
+        "water-management-policy:2026-08-10:water-recycling-harvesting-and-reuse:01:4e23723b"
+      ]
+    ],
+    "fact_checks": [
+      [
+        "flushing"
+      ],
+      [
+        "irrigation"
+      ],
+      [
+        "landscaping"
+      ],
+      [
+        "hvac|cooling"
+      ]
+    ],
+    "forbidden_patterns": [],
+    "abstention_patterns": [],
+    "review_status": "AI source-audited; human review pending"
+  },
+  "water_half_year_report_owner": {
+    "evidence_groups": [
+      [
+        "water-management-policy:2026-08-10:governance-and-roles-responsibilities:01:1afb932b"
+      ]
+    ],
+    "fact_checks": [
+      [
+        "facilities|administration"
+      ]
+    ],
+    "forbidden_patterns": [],
+    "abstention_patterns": [],
+    "review_status": "AI source-audited; human review pending"
+  },
+  "unanswerable_parental_leave": {
+    "evidence_groups": [],
+    "fact_checks": [],
+    "forbidden_patterns": [],
+    "abstention_patterns": [
+      "insufficient|not (?:provide|specif|mention|contain)|no (?:information|evidence)|cannot (?:determine|answer)|doesn.t (?:provide|specif)"
+    ],
+    "review_status": "AI source-audited; human review pending"
+  }
+}

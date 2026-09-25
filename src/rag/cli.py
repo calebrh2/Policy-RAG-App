@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 from pathlib import Path
 from typing import Any
 
@@ -14,18 +13,19 @@ from rag.adapters.ollama import OllamaAdapter
 from rag.adapters.reranker import CrossEncoderRerankerAdapter
 from rag.adapters.vector_store import ChromaVectorStoreAdapter
 from rag.chunk_validation import validate_chunks
+from rag.config import get_settings
 from rag.generation import GroundedAnswerGenerator
 from rag.indexing import index_records, load_searchable_records
 from rag.ingestion import Chunk, create_chunks
 from rag.pipeline import RAGPipeline
 from rag.retrieval import RetrievalService
-from rag.router import QueryRoute, QueryRouter
+from rag.router import HybridQueryRouter, QueryRoute
 
-ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_MARKDOWN = ROOT / "data/extracted/RAG-documents"
-DEFAULT_CHUNKS = ROOT / "data/chunks/chunks.jsonl"
-DEFAULT_CHROMA = ROOT / "data/chromadb"
-DEFAULT_COLLECTION = "policy_chunks"
+SETTINGS = get_settings()
+DEFAULT_MARKDOWN = SETTINGS.markdown_dir
+DEFAULT_CHUNKS = SETTINGS.chunks_path
+DEFAULT_CHROMA = SETTINGS.chroma_path
+DEFAULT_COLLECTION = SETTINGS.chroma_collection
 
 
 def _write_chunks(chunks: list[Chunk], path: Path) -> None:
@@ -54,10 +54,13 @@ def _build_retrieval(args: argparse.Namespace) -> RetrievalService:
     bm25 = BM25KeywordSearchAdapter()
     bm25.index(records)
     return RetrievalService(
-        BgeEmbeddingAdapter(),
+        BgeEmbeddingAdapter(
+            model_name=SETTINGS.embedding_model,
+            application_token_limit=SETTINGS.embedding_token_limit,
+        ),
         ChromaVectorStoreAdapter(args.chroma, collection_name=args.collection),
         bm25,
-        CrossEncoderRerankerAdapter(),
+        CrossEncoderRerankerAdapter(model_name=SETTINGS.reranker_model),
     )
 
 
@@ -73,7 +76,10 @@ def command_chunk(args: argparse.Namespace) -> None:
 
 
 def command_validate(args: argparse.Namespace) -> None:
-    embedder = BgeEmbeddingAdapter()
+    embedder = BgeEmbeddingAdapter(
+        model_name=SETTINGS.embedding_model,
+        application_token_limit=SETTINGS.embedding_token_limit,
+    )
     chunks = _validate_file(args.chunks, embedder)
     searchable = [chunk for chunk in chunks if chunk["searchable"]]
     largest = max(searchable, key=lambda chunk: int(chunk["embedding_token_count"]))
@@ -95,7 +101,10 @@ def command_ingest(args: argparse.Namespace) -> None:
     else:
         print(f"No Markdown inputs found; using existing chunks at {args.chunks}.")
 
-    embedder = BgeEmbeddingAdapter()
+    embedder = BgeEmbeddingAdapter(
+        model_name=SETTINGS.embedding_model,
+        application_token_limit=SETTINGS.embedding_token_limit,
+    )
     validated = _validate_file(args.chunks, embedder)
     searchable = [chunk for chunk in validated if chunk["searchable"]]
     store = ChromaVectorStoreAdapter(args.chroma, collection_name=args.collection)
@@ -111,7 +120,7 @@ def command_ingest(args: argparse.Namespace) -> None:
 
 
 def command_route(args: argparse.Namespace) -> None:
-    decision = QueryRouter().route(args.query)
+    decision = _build_router(args).route(args.query)
     print(f"route={decision.route.value}")
     print(f"statuses={','.join(decision.statuses)}")
     print(f"reason={decision.reason}")
@@ -123,7 +132,7 @@ def _selected_route(value: str) -> QueryRoute | None:
 
 def command_retrieve(args: argparse.Namespace) -> None:
     service = _build_retrieval(args)
-    decision = QueryRouter().route(args.query)
+    decision = _build_router(args).route(args.query)
     statuses: tuple[str, ...]
     if args.route != "auto":
         decision_route = QueryRoute(args.route)
@@ -134,6 +143,10 @@ def command_retrieve(args: argparse.Namespace) -> None:
         )
     else:
         statuses = decision.statuses
+    if not statuses:
+        print(f"Route: {decision.route.value} ({decision.reason})")
+        print("Clarify whether you want the current, superseded, or both versions.")
+        return
     results = service.retrieve_statuses(
         args.query,
         statuses=statuses,
@@ -152,15 +165,17 @@ def command_retrieve(args: argparse.Namespace) -> None:
 
 
 def command_ask(args: argparse.Namespace) -> None:
+    llm = OllamaAdapter(
+        model_name=args.model,
+        base_url=args.ollama_url,
+        timeout_seconds=SETTINGS.ollama_timeout_seconds,
+        context_window=args.context_window,
+        think=SETTINGS.ollama_think,
+    )
     pipeline = RAGPipeline(
         _build_retrieval(args),
-        GroundedAnswerGenerator(
-            OllamaAdapter(
-                model_name=args.model,
-                base_url=args.ollama_url,
-                context_window=args.context_window,
-            )
-        ),
+        GroundedAnswerGenerator(llm),
+        router=HybridQueryRouter(llm, confidence_threshold=args.router_confidence),
     )
     answer, decision = pipeline.answer(
         args.question,
@@ -170,13 +185,19 @@ def command_ask(args: argparse.Namespace) -> None:
     )
     print(f"Route: {decision.route.value} ({decision.reason})\n")
     print(answer.answer)
-    print("\nSources:")
-    for citation in answer.citations:
-        print(
-            f"- {citation.document_title}, version {citation.version}, "
-            f"{citation.section_path}, pages {citation.page_start}-{citation.page_end} "
-            f"[{citation.chunk_id}]"
+    if answer.citations:
+        print("\nSources:")
+    for source_number, citation in enumerate(answer.citations, 1):
+        pages = (
+            f"p. {citation.page_start}"
+            if citation.page_start == citation.page_end
+            else f"pp. {citation.page_start}-{citation.page_end}"
         )
+        print(
+            f"[{source_number}] {citation.document_title}, version {citation.version}, "
+            f"{citation.section_path}, {pages}"
+        )
+        print(f"    chunk_id: {citation.chunk_id}")
 
 
 def _common_storage(parser: argparse.ArgumentParser) -> None:
@@ -192,8 +213,30 @@ def _common_query(parser: argparse.ArgumentParser) -> None:
         choices=("auto", "current", "historical", "comparison"),
         default="auto",
     )
-    parser.add_argument("--candidates", type=int, default=10)
-    parser.add_argument("--top-k", type=int, default=5)
+    parser.add_argument("--candidates", type=int, default=SETTINGS.retrieval_candidates)
+    parser.add_argument("--top-k", type=int, default=SETTINGS.retrieval_top_k)
+    _router_options(parser)
+
+
+def _router_options(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--model", default=SETTINGS.ollama_model)
+    parser.add_argument(
+        "--ollama-url",
+        default=SETTINGS.ollama_base_url,
+    )
+    parser.add_argument("--router-confidence", type=float, default=SETTINGS.router_confidence)
+
+
+def _build_router(args: argparse.Namespace) -> HybridQueryRouter:
+    return HybridQueryRouter(
+        OllamaAdapter(
+            model_name=args.model,
+            base_url=args.ollama_url,
+            timeout_seconds=SETTINGS.ollama_timeout_seconds,
+            think=SETTINGS.ollama_think,
+        ),
+        confidence_threshold=args.router_confidence,
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -212,11 +255,12 @@ def build_parser() -> argparse.ArgumentParser:
     ingest = commands.add_parser("ingest", help="Chunk, validate, embed, and index")
     ingest.add_argument("--input-dir", type=Path, default=DEFAULT_MARKDOWN)
     _common_storage(ingest)
-    ingest.add_argument("--batch-size", type=int, default=16)
+    ingest.add_argument("--batch-size", type=int, default=SETTINGS.embedding_batch_size)
     ingest.set_defaults(handler=command_ingest)
 
     route = commands.add_parser("route", help="Show automatic version routing")
     route.add_argument("query")
+    _router_options(route)
     route.set_defaults(handler=command_route)
 
     retrieve = commands.add_parser("retrieve", help="Retrieve and rerank chunks")
@@ -227,12 +271,7 @@ def build_parser() -> argparse.ArgumentParser:
     ask = commands.add_parser("ask", help="Generate a grounded answer with citations")
     ask.add_argument("question")
     _common_query(ask)
-    ask.add_argument("--model", default="mistral:7b")
-    ask.add_argument(
-        "--ollama-url",
-        default=os.getenv("OLLAMA_BASE_URL", "http://host.docker.internal:11434"),
-    )
-    ask.add_argument("--context-window", type=int, default=8192)
+    ask.add_argument("--context-window", type=int, default=SETTINGS.ollama_context_window)
     ask.set_defaults(handler=command_ask)
     return parser
 

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Protocol, runtime_checkable
+from typing import Any, Protocol, runtime_checkable
 
 MetadataValue = str | int | float | bool
 
@@ -74,3 +74,15 @@ class RerankerAdapter(Protocol):
 @runtime_checkable
 class LLMAdapter(Protocol):
     def generate(self, prompt: str) -> str: ...
+
+
+@runtime_checkable
+class StructuredLLMAdapter(Protocol):
+    model_name: str
+
+    def generate_structured(
+        self,
+        messages: Sequence[Mapping[str, str]],
+        *,
+        response_schema: Mapping[str, Any],
+    ) -> str: ...

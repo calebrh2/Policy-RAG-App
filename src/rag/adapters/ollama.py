@@ -19,17 +19,19 @@ class OllamaError(RuntimeError):
 class OllamaAdapter:
     def __init__(
         self,
-        model_name: str = "mistral",
+        model_name: str = "qwen3:8b",
         *,
         base_url: str = "http://localhost:11434",
         timeout_seconds: float = 120.0,
         context_window: int = 8192,
+        think: bool = False,
         transport: Transport | None = None,
     ) -> None:
         self.model_name = model_name
         self.base_url = base_url.rstrip("/")
         self.timeout_seconds = timeout_seconds
         self.context_window = context_window
+        self.think = think
         self._transport = transport or self._http_chat
 
     def _http_chat(self, payload: JsonObject) -> JsonObject:
@@ -64,6 +66,7 @@ class OllamaAdapter:
             "model": self.model_name,
             "messages": [dict(message) for message in messages],
             "stream": False,
+            "think": self.think,
             "format": dict(response_schema),
             "options": {
                 "temperature": 0,
@@ -85,6 +88,7 @@ class OllamaAdapter:
                 "model": self.model_name,
                 "messages": [{"role": "user", "content": prompt}],
                 "stream": False,
+                "think": self.think,
                 "options": {"temperature": 0, "num_ctx": self.context_window},
             }
         )

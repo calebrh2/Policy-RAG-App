@@ -17,7 +17,7 @@ def test_schema_is_sent_via_format_not_embedded_in_prompt() -> None:
                     {
                         "answer": "Supported answer.",
                         "sufficient_evidence": True,
-                        "cited_chunk_ids": ["chunk-1"],
+                        "claims": [{"text": "Supported answer.", "cited_chunk_ids": ["chunk-1"]}],
                     }
                 )
             }
@@ -33,3 +33,4 @@ def test_schema_is_sent_via_format_not_embedded_in_prompt() -> None:
     assert captured["format"] == StructuredAnswerPayload.model_json_schema()
     assert "properties" not in captured["messages"][0]["content"]
     assert captured["options"]["temperature"] == 0
+    assert captured["think"] is False

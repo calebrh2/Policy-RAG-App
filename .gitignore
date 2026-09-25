@@ -12,3 +12,6 @@ htmlcov/
 data/chromadb/
 artifacts/
 
+
+# Generated evaluation output
+data/evaluation/runs/
