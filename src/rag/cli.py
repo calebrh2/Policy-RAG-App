@@ -10,8 +10,15 @@ from rag.adapters.ollama import LanguageModel
 from rag.adapters.reranker import Reranker
 from rag.generation import GenerationError, generate
 from rag.models import Citation
+from rag.planning import covers, decompose, focus_query
 from rag.retrieval import RetrievalHit, rerank
-from rag.routing import comparison_hits, route
+from rag.routing import (
+    comparison_hits,
+    resolve_route,
+    should_compare_steps,
+    version_terms,
+    versioned_hits,
+)
 
 _CANDIDATES = 20
 _ANSWER_CHUNKS = 5
@@ -34,8 +41,8 @@ def respond(
     reranker: Reranker,
     model: LanguageModel,
 ) -> dict[str, object]:
-    """Retrieve, rerank, and return the answer with the cited chunk text."""
-    hits = _hits(question, retriever, reranker, model)
+    """Retrieve each part of the question, then return the answer with cited chunk text."""
+    hits = _planned_hits(question, retriever, reranker, model)
     try:
         answer = generate(question, hits, model)
     except GenerationError as exc:
@@ -47,22 +54,111 @@ def respond(
     }
 
 
-def _hits(
+def _planned_hits(
     question: str,
     retriever: _Retriever,
     reranker: Reranker,
     model: LanguageModel,
 ) -> list[RetrievalHit]:
-    chosen = route(question, model)
+    multi_version, single_version = _version_terms()
+    chosen = resolve_route(
+        question,
+        model,
+        multi_version=multi_version,
+        single_version=single_version,
+    )
     if chosen == "compare":
-        current = retriever.retrieve(question, limit=_CANDIDATES, version="current")
-        outdated = retriever.retrieve(question, limit=_CANDIDATES, version="outdated")
+        return _search(question, "compare", retriever, reranker, multi_version=multi_version)
+    plan = decompose(question, model)
+    labels = [
+        resolve_route(step, model, multi_version=multi_version, single_version=single_version)
+        for step in plan.steps
+    ]
+    if should_compare_steps(labels, plan.steps, single_version=single_version):
+        return _search(question, "compare", retriever, reranker, multi_version=multi_version)
+    groups = [
+        _step(step, retriever, reranker, model, multi_version, single_version)
+        for step in plan.steps
+    ]
+    if len(groups) == 1:
+        return groups[0]
+    return _union(groups)
+
+
+def _step(
+    question: str,
+    retriever: _Retriever,
+    reranker: Reranker,
+    model: LanguageModel,
+    multi_version: frozenset[str],
+    single_version: frozenset[str],
+) -> list[RetrievalHit]:
+    chosen = resolve_route(
+        question,
+        model,
+        multi_version=multi_version,
+        single_version=single_version,
+    )
+    hits = _search(question, chosen, retriever, reranker)
+    if covers(question, hits):
+        return hits
+    focused = focus_query(question)
+    if not focused or focused == question.casefold():
+        return hits
+    return _search(focused, "current", retriever, reranker, rank_query=question)
+
+
+def _search(
+    question: str,
+    chosen: str,
+    retriever: _Retriever,
+    reranker: Reranker,
+    *,
+    rank_query: str | None = None,
+    multi_version: frozenset[str] = frozenset(),
+) -> list[RetrievalHit]:
+    query = question
+    rank = rank_query or question
+    if chosen == "compare":
+        current = versioned_hits(
+            retriever.retrieve(query, limit=_CANDIDATES, version="current"),
+            multi_version,
+        )
+        outdated = versioned_hits(
+            retriever.retrieve(query, limit=_CANDIDATES, version="outdated"),
+            multi_version,
+        )
         if not outdated:
-            return rerank(question, current, reranker, limit=_ANSWER_CHUNKS)
+            return rerank(rank, current, reranker, limit=_ANSWER_CHUNKS)
         return comparison_hits(current, outdated, limit=_ANSWER_CHUNKS)
     version = "outdated" if chosen == "outdated" else "current"
-    fused = retriever.retrieve(question, limit=_CANDIDATES, version=version)
-    return rerank(question, fused, reranker, limit=_ANSWER_CHUNKS)
+    fused = retriever.retrieve(query, limit=_CANDIDATES, version=version)
+    return rerank(rank, fused, reranker, limit=_ANSWER_CHUNKS)
+
+
+def _version_terms() -> tuple[frozenset[str], frozenset[str]]:
+    path = Path("data/chunks/chunks.jsonl")
+    if not path.is_file():
+        return frozenset(), frozenset()
+    records = [
+        (str(raw["document_name"]), str(raw["version"]))
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+        for raw in [json.loads(line)]
+    ]
+    return version_terms(records)
+
+
+def _union(groups: list[list[RetrievalHit]]) -> list[RetrievalHit]:
+    seen: set[str] = set()
+    merged: list[RetrievalHit] = []
+    for hits in groups:
+        for hit in hits:
+            if hit.chunk_id in seen:
+                continue
+            seen.add(hit.chunk_id)
+            merged.append(hit)
+    return merged
 
 
 def main() -> None:

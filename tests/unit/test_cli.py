@@ -37,6 +37,8 @@ class _Reranker:
 
 class _Model:
     def complete(self, prompt: str) -> str:
+        if "retrieval steps" in prompt:
+            return json.dumps({"steps": ["What was India Scope 2 in 2023?"]})
         if "one word only" in prompt:
             return "current"
         assert "6,746.70" in prompt

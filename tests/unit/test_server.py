@@ -53,6 +53,8 @@ class _Reranker:
 
 class _Model:
     def complete(self, prompt: str) -> str:
+        if "retrieval steps" in prompt:
+            return '{"steps": ["What was India Scope 2 in 2023?"]}'
         if "one word only" in prompt:
             return "current"
         return '{"text": "India Scope 2 in 2023 was 6,746.70 tCO2e.", "citations": [1]}'

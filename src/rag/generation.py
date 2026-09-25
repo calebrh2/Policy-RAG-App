@@ -42,6 +42,8 @@ def _prompt(question: str, hits: list[RetrievalHit]) -> str:
         'Reply with JSON only: {"text": "...", "citations": [1]}\n'
         "citations is the list of chunk numbers, such as 1 for the chunk labeled [1].\n"
         "Copy numbers exactly as written in the chunks. Do not calculate.\n"
+        "When a chunk shows Current and Outdated, report only facts that differ. "
+        "If both sides say the same thing, do not call it a change.\n"
         'If the chunks do not contain the answer, use text '
         '"The policy documents do not contain this." and citations [].\n\n'
         f"Question: {question}\n\n"
