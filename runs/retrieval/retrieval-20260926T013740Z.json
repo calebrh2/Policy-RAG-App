@@ -1,0 +1,164 @@
+{
+  "corpus": "meridian",
+  "k": 5,
+  "means": {
+    "recall_at_k": 1.0,
+    "precision_at_k": 0.2,
+    "mrr": 1.0,
+    "ndcg_at_k": 1.0
+  },
+  "queries": [
+    {
+      "k": 5,
+      "question": "How many days of Paid Time Off does the current Leave Policy accrue per year?",
+      "case_id": "leave-pto-days",
+      "gold_chunk_id": "meridian-analytics-leave-policy:2026-03-01:3",
+      "retrieved_chunk_ids": [
+        "meridian-analytics-leave-policy:2026-03-01:3",
+        "meridian-analytics-leave-policy:2026-03-01:4",
+        "meridian-analytics-leave-policy:2026-03-01:9",
+        "meridian-analytics-leave-policy:2026-03-01:6",
+        "meridian-analytics-leave-policy:2026-03-01:5"
+      ],
+      "metrics": {
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 1.0
+      }
+    },
+    {
+      "k": 5,
+      "question": "How many sick leave days does the current Leave Policy give per year?",
+      "case_id": "leave-sick-days",
+      "gold_chunk_id": "meridian-analytics-leave-policy:2026-03-01:4",
+      "retrieved_chunk_ids": [
+        "meridian-analytics-leave-policy:2026-03-01:4",
+        "meridian-analytics-leave-policy:2026-03-01:3",
+        "meridian-analytics-leave-policy:2026-03-01:9",
+        "meridian-analytics-leave-policy:2026-03-01:11",
+        "meridian-analytics-leave-policy:2026-03-01:5"
+      ],
+      "metrics": {
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 1.0
+      }
+    },
+    {
+      "k": 5,
+      "question": "How many weeks of parental leave does the current Leave Policy grant, and how is that leave paid?",
+      "case_id": "leave-parental-weeks",
+      "gold_chunk_id": "meridian-analytics-leave-policy:2026-03-01:5",
+      "retrieved_chunk_ids": [
+        "meridian-analytics-leave-policy:2026-03-01:5",
+        "meridian-analytics-leave-policy:2026-03-01:11",
+        "meridian-analytics-leave-policy:2026-03-01:6",
+        "meridian-analytics-leave-policy:2026-03-01:3",
+        "meridian-analytics-health-benefits-policy:2026-03-01:8"
+      ],
+      "metrics": {
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 1.0
+      }
+    },
+    {
+      "k": 5,
+      "question": "How much does the Health & Benefits Policy contribute each year to an HSA for employees who elect the HDHP?",
+      "case_id": "health-hsa-contribution",
+      "gold_chunk_id": "meridian-analytics-health-benefits-policy:2026-03-01:3",
+      "retrieved_chunk_ids": [
+        "meridian-analytics-health-benefits-policy:2026-03-01:3",
+        "meridian-analytics-health-benefits-policy:2026-03-01:5",
+        "meridian-analytics-health-benefits-policy:2026-03-01:7",
+        "meridian-analytics-health-benefits-policy:2026-03-01:4",
+        "meridian-analytics-health-benefits-policy:2026-03-01:2"
+      ],
+      "metrics": {
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 1.0
+      }
+    },
+    {
+      "k": 5,
+      "question": "How long do new employees have to enroll in benefits under the Health & Benefits Policy?",
+      "case_id": "health-enrollment-window",
+      "gold_chunk_id": "meridian-analytics-health-benefits-policy:2026-03-01:4",
+      "retrieved_chunk_ids": [
+        "meridian-analytics-health-benefits-policy:2026-03-01:4",
+        "meridian-analytics-health-benefits-policy:2026-03-01:2",
+        "meridian-analytics-health-benefits-policy:2026-03-01:9",
+        "meridian-analytics-health-benefits-policy:2026-03-01:1",
+        "meridian-analytics-leave-policy:2026-03-01:9"
+      ],
+      "metrics": {
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 1.0
+      }
+    },
+    {
+      "k": 5,
+      "question": "What is the annual wellness reimbursement under the Health & Benefits Policy?",
+      "case_id": "health-wellness-reimbursement",
+      "gold_chunk_id": "meridian-analytics-health-benefits-policy:2026-03-01:5",
+      "retrieved_chunk_ids": [
+        "meridian-analytics-health-benefits-policy:2026-03-01:5",
+        "meridian-analytics-health-benefits-policy:2026-03-01:1",
+        "meridian-analytics-health-benefits-policy:2026-03-01:3",
+        "meridian-analytics-health-benefits-policy:2026-03-01:10",
+        "meridian-analytics-health-benefits-policy:2026-03-01:7"
+      ],
+      "metrics": {
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 1.0
+      }
+    },
+    {
+      "k": 5,
+      "question": "Does the IT & Data Security Policy require multi-factor authentication for company accounts?",
+      "case_id": "security-mfa",
+      "gold_chunk_id": "meridian-analytics-it-data-security-policy:2026-03-01:3",
+      "retrieved_chunk_ids": [
+        "meridian-analytics-it-data-security-policy:2026-03-01:3",
+        "meridian-analytics-it-data-security-policy:2026-03-01:1",
+        "meridian-analytics-it-data-security-policy:2026-03-01:8",
+        "meridian-analytics-it-data-security-policy:2026-03-01:5",
+        "meridian-analytics-it-data-security-policy:2026-03-01:2"
+      ],
+      "metrics": {
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 1.0
+      }
+    },
+    {
+      "k": 5,
+      "question": "How soon must a suspected security incident be reported under the IT & Data Security Policy?",
+      "case_id": "security-incident-hour",
+      "gold_chunk_id": "meridian-analytics-it-data-security-policy:2026-03-01:6",
+      "retrieved_chunk_ids": [
+        "meridian-analytics-it-data-security-policy:2026-03-01:6",
+        "meridian-analytics-it-data-security-policy:2026-03-01:3",
+        "meridian-analytics-it-data-security-policy:2026-03-01:9",
+        "meridian-analytics-it-data-security-policy:2026-03-01:10",
+        "meridian-analytics-it-data-security-policy:2026-03-01:5"
+      ],
+      "metrics": {
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 1.0
+      }
+    }
+  ]
+}

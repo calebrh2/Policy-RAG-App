@@ -4,11 +4,14 @@ version = "0.1.0"
 description = "Team scaffold for a policy-document RAG lab"
 requires-python = ">=3.12,<3.13"
 dependencies = [
+  "fastapi>=0.115,<1.0",
   "markdown-it-py>=3.0,<4.0",
   "pymupdf>=1.25,<2.0",
   "pydantic>=2.10,<3.0",
   "pydantic-settings>=2.7,<3.0",
   "tenacity>=9.0,<10.0",
+  "pymupdf4llm>=1.28.2",
+  "uvicorn>=0.34,<1.0",
 ]
 
 [dependency-groups]
@@ -21,6 +24,7 @@ dev = [
 rag = [
   "chromadb>=1.0,<2.0",
   "sentence-transformers>=3.0,<4.0",
+  "snowballstemmer>=2.2,<3.0",
   "torch>=1.11",
   "rank-bm25>=0.2,<0.3",
 ]
@@ -39,6 +43,7 @@ explicit = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src", "."]
 addopts = "-ra"
 
 [tool.ruff]

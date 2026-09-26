@@ -1,0 +1,182 @@
+{
+  "k": 5,
+  "means": {
+    "recall_at_k": 1.0,
+    "precision_at_k": 0.2,
+    "mrr": 0.8888888888888888,
+    "ndcg_at_k": 0.9179843896825461
+  },
+  "queries": [
+    {
+      "k": 5,
+      "question": "How does the Water Management Policy define \"Water Positive\"?",
+      "case_id": "water-positive-definition",
+      "gold_chunk_id": "water-management-policy:none:1",
+      "retrieved_chunk_ids": [
+        "water-management-policy:none:11",
+        "water-management-policy:none:1",
+        "water-management-policy:none:7",
+        "water-management-policy:none:5",
+        "water-management-policy:none:10"
+      ],
+      "metrics": {
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.2,
+        "mrr": 0.5,
+        "ndcg_at_k": 0.6309297535714575
+      }
+    },
+    {
+      "k": 5,
+      "question": "Which tools does the Water Management Policy name for water risk assessments?",
+      "case_id": "water-risk-tools",
+      "gold_chunk_id": "water-management-policy:none:12",
+      "retrieved_chunk_ids": [
+        "water-management-policy:none:12",
+        "water-management-policy:none:8",
+        "water-management-policy:none:11",
+        "water-management-policy:none:5",
+        "water-management-policy:none:13"
+      ],
+      "metrics": {
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 1.0
+      }
+    },
+    {
+      "k": 5,
+      "question": "How can someone raise a concern about water use or water quality under the Water Management Policy?",
+      "case_id": "water-grievance",
+      "gold_chunk_id": "water-management-policy:none:15",
+      "retrieved_chunk_ids": [
+        "water-management-policy:none:15",
+        "water-management-policy:none:7",
+        "water-management-policy:none:4",
+        "water-management-policy:none:5",
+        "water-management-policy:none:12"
+      ],
+      "metrics": {
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 1.0
+      }
+    },
+    {
+      "k": 5,
+      "question": "What non-potable uses does the Water Management Policy give for treated wastewater from STPs and ETPs?",
+      "case_id": "water-stp-reuse",
+      "gold_chunk_id": "water-management-policy:none:6",
+      "retrieved_chunk_ids": [
+        "water-management-policy:none:6",
+        "water-management-policy:none:11",
+        "single-use-plastic-free-policy:none:3",
+        "water-management-policy:none:15",
+        "water-management-policy:none:5"
+      ],
+      "metrics": {
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 1.0
+      }
+    },
+    {
+      "k": 5,
+      "question": "Are plastic plates, cups, and glasses prohibited within Coforge premises?",
+      "case_id": "plastic-cups-prohibited",
+      "gold_chunk_id": "single-use-plastic-free-policy:none:8",
+      "retrieved_chunk_ids": [
+        "single-use-plastic-free-policy:none:8",
+        "single-use-plastic-free-policy:none:18",
+        "single-use-plastic-free-policy:none:17",
+        "single-use-plastic-free-policy:none:20",
+        "single-use-plastic-free-policy:none:21"
+      ],
+      "metrics": {
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 1.0
+      }
+    },
+    {
+      "k": 5,
+      "question": "Who must give written approval for a single-use plastic exemption?",
+      "case_id": "plastic-exemption-approver",
+      "gold_chunk_id": "single-use-plastic-free-policy:none:7",
+      "retrieved_chunk_ids": [
+        "single-use-plastic-free-policy:none:7",
+        "single-use-plastic-free-policy:none:21",
+        "single-use-plastic-free-policy:none:6",
+        "single-use-plastic-free-policy:none:8",
+        "single-use-plastic-free-policy:none:17"
+      ],
+      "metrics": {
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 1.0
+      }
+    },
+    {
+      "k": 5,
+      "question": "By when must policy-prohibited single-use plastic items be eliminated at Coforge India sites?",
+      "case_id": "plastic-sup-deadline",
+      "gold_chunk_id": "single-use-plastic-free-policy:none:15",
+      "retrieved_chunk_ids": [
+        "single-use-plastic-free-policy:none:6",
+        "single-use-plastic-free-policy:none:15",
+        "single-use-plastic-free-policy:none:17",
+        "single-use-plastic-free-policy:none:8",
+        "single-use-plastic-free-policy:none:21"
+      ],
+      "metrics": {
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.2,
+        "mrr": 0.5,
+        "ndcg_at_k": 0.6309297535714575
+      }
+    },
+    {
+      "k": 5,
+      "question": "By how much and by which year does the current Carbon Reduction Plan commit to relatively reduce emissions from the baseline year?",
+      "case_id": "carbon-reduction-target",
+      "gold_chunk_id": "carbon-reduction-plan:2024-03-28:6",
+      "retrieved_chunk_ids": [
+        "carbon-reduction-plan:2024-03-28:6",
+        "carbon-reduction-plan:2024-03-28:3",
+        "carbon-reduction-plan:2024-03-28:4",
+        "carbon-reduction-plan:2024-03-28:5",
+        "carbon-reduction-plan:2024-03-28:8"
+      ],
+      "metrics": {
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 1.0
+      }
+    },
+    {
+      "k": 5,
+      "question": "Which ISO standards does the current Carbon Reduction Plan say the environment, health, and safety management system conforms to?",
+      "case_id": "carbon-iso-standards",
+      "gold_chunk_id": "carbon-reduction-plan:2024-03-28:7",
+      "retrieved_chunk_ids": [
+        "carbon-reduction-plan:2024-03-28:7",
+        "carbon-reduction-plan:2024-03-28:12",
+        "carbon-reduction-plan:2024-03-28:11",
+        "water-management-policy:none:16",
+        "carbon-reduction-plan:2024-03-28:10"
+      ],
+      "metrics": {
+        "recall_at_k": 1.0,
+        "precision_at_k": 0.2,
+        "mrr": 1.0,
+        "ndcg_at_k": 1.0
+      }
+    }
+  ]
+}

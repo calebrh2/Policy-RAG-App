@@ -10,5 +10,9 @@ htmlcov/
 .env.*
 !.env.example
 data/chromadb/
+data/keyword/
 artifacts/
+frontend/node_modules/
+frontend/dist/
+.tools/
 

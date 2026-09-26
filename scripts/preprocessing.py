@@ -1,7 +1,9 @@
-"""Extract this PDF corpus with page provenance, tables, and coverage checks.
+"""Extract the Coforge PDF corpus with page provenance, tables, and coverage checks.
 
 Run: uv run python scripts/preprocessing.py
 Outputs are derived artifacts; original PDFs are never modified.
+The defaults read ``data/source/previous`` and write ``data/extracted/previous``
+so a plain run does not replace the Meridian markdown.
 """
 
 from __future__ import annotations
@@ -18,8 +20,8 @@ from typing import Any
 import pymupdf
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "data/source/RAG-documents"
-OUTPUT = ROOT / "data/extracted/RAG-documents"
+SOURCE = ROOT / "data/source/previous"
+OUTPUT = ROOT / "data/extracted/previous"
 
 
 def tokens(text: str) -> Counter[str]:
@@ -196,7 +198,8 @@ def extract(path: Path, output: Path) -> dict[str, Any]:
                     page_events.append(
                         (y, block["bbox"][0], {"kind": "heading", "text": text, "page": number})
                     )
-                elif re.match(r"^(?:[•\uf077]|\d+\.)($|\s)", text):
+                # "2030." is a wrapped year. Numbered items in this corpus have text after the marker.
+                elif re.match(r"^(?:[•\uf077](?:$|\s)|\d+\.\s)", text):
                     flush(pending, page_events, start_y, block["bbox"][0], number)
                     start_y = y
                     pending.append(re.sub(r"^[•\uf077]", "-", text))

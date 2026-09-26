@@ -1,0 +1,370 @@
+{
+  "faithfulness_prompt": "faithfulness-prompt-v1",
+  "accuracy_prompt": "accuracy-prompt-v1",
+  "k": 5,
+  "means": {
+    "citations_ok": 1.0,
+    "refusal_ok": 1.0,
+    "faithful": 1.0,
+    "accurate": 1.0,
+    "key_information": 1.0
+  },
+  "queries": [
+    {
+      "case_id": "water-positive-definition",
+      "question": "How does the Water Management Policy define \"Water Positive\"?",
+      "gold_answer": "Coforge defines \"Water Positive\" as replenishing more water than is consumed across owned operations.",
+      "expect_supported": true,
+      "gold_chunk_id": "water-management-policy:none:1",
+      "gold_in_prompt": true,
+      "answer": {
+        "supported": true,
+        "text": "The Water Management Policy defines 'Water Positive' as replenishing more water than is consumed across owned operations through a combination of water conservation, recycling, rainwater harvesting, watershed restoration, and community water stewardship initiatives.",
+        "citations": [
+          {
+            "chunk_id": "water-management-policy:none:1",
+            "document_title": "Water Management Policy",
+            "section_path": "Purpose"
+          }
+        ]
+      },
+      "raw_citation_ids": [
+        "water-management-policy:none:1"
+      ],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "replenishing more water than is consumed"
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "water-risk-tools",
+      "question": "Which tools does the Water Management Policy name for water risk assessments?",
+      "gold_answer": "The WRI Aqueduct Water Risk Atlas or the WWF Water Risk Filter.",
+      "expect_supported": true,
+      "gold_chunk_id": "water-management-policy:none:12",
+      "gold_in_prompt": true,
+      "answer": {
+        "supported": true,
+        "text": "The Water Management Policy names two tools for water risk assessments: the WRI Aqueduct Water Risk Atlas and the WWF Water Risk Filter.",
+        "citations": [
+          {
+            "chunk_id": "water-management-policy:none:12",
+            "document_title": "Water Management Policy",
+            "section_path": "Water Risk Assessment"
+          }
+        ]
+      },
+      "raw_citation_ids": [
+        "water-management-policy:none:12"
+      ],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "WRI Aqueduct Water Risk Atlas",
+        "WWF Water Risk Filter"
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "water-grievance",
+      "question": "How can someone raise a concern about water use or water quality under the Water Management Policy?",
+      "gold_answer": "Through Coforge's Whistleblower channel or the applicable local grievance redressal mechanism.",
+      "expect_supported": true,
+      "gold_chunk_id": "water-management-policy:none:15",
+      "gold_in_prompt": true,
+      "answer": {
+        "supported": true,
+        "text": "Concerns about water use or water quality under the Water Management Policy can be raised through Coforge's established Whistleblower channel or through the applicable local grievance redressal mechanism.",
+        "citations": [
+          {
+            "chunk_id": "water-management-policy:none:15",
+            "document_title": "Water Management Policy",
+            "section_path": "Grievance Mechanism"
+          }
+        ]
+      },
+      "raw_citation_ids": [
+        "water-management-policy:none:15"
+      ],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "Whistleblower channel"
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "water-stp-reuse",
+      "question": "What non-potable uses does the Water Management Policy give for treated wastewater from STPs and ETPs?",
+      "gold_answer": "Flushing, irrigation, landscaping, and HVAC/cooling systems.",
+      "expect_supported": true,
+      "gold_chunk_id": "water-management-policy:none:6",
+      "gold_in_prompt": true,
+      "answer": {
+        "supported": true,
+        "text": "The Water Management Policy gives non-potable uses for treated wastewater from STPs and ETPs as flushing, irrigation, landscaping, and HVAC/cooling systems.",
+        "citations": [
+          {
+            "chunk_id": "water-management-policy:none:6",
+            "document_title": "Water Management Policy",
+            "section_path": "Water Recycling, Harvesting and Reuse"
+          }
+        ]
+      },
+      "raw_citation_ids": [
+        "water-management-policy:none:6"
+      ],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "flushing, irrigation, landscaping"
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "plastic-cups-prohibited",
+      "question": "Are plastic plates, cups, and glasses prohibited within Coforge premises?",
+      "gold_answer": "Yes. Plastic plates, cups, and glasses are prohibited.",
+      "expect_supported": true,
+      "gold_chunk_id": "single-use-plastic-free-policy:none:8",
+      "gold_in_prompt": true,
+      "answer": {
+        "supported": true,
+        "text": "Yes. Plastic plates, cups, and glasses are prohibited within Coforge premises.",
+        "citations": [
+          {
+            "chunk_id": "single-use-plastic-free-policy:none:18",
+            "document_title": "Single-use Plastic-free Policy",
+            "section_path": "Annexure A: Prohibited Single-Use Plastic Items (India \u2013 Coforge Premises) > A1. Food & Beverage Service (Cafeteria/Pantry/Events)"
+          },
+          {
+            "chunk_id": "single-use-plastic-free-policy:none:20",
+            "document_title": "Single-use Plastic-free Policy",
+            "section_path": "Annexure A: Prohibited Single-Use Plastic Items (India \u2013 Coforge Premises) > A3. Office & Miscellaneous Disposables"
+          }
+        ]
+      },
+      "raw_citation_ids": [
+        "single-use-plastic-free-policy:none:18",
+        "single-use-plastic-free-policy:none:20"
+      ],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "Plastic plates, cups, and glasses"
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "plastic-exemption-approver",
+      "question": "Who must give written approval for a single-use plastic exemption?",
+      "gold_answer": "The Site Admin Head and Sustainability/ESG.",
+      "expect_supported": true,
+      "gold_chunk_id": "single-use-plastic-free-policy:none:7",
+      "gold_in_prompt": true,
+      "answer": {
+        "supported": true,
+        "text": "Written approval for a single-use plastic exemption must be given by the Site Admin Head and Sustainability/ESG.",
+        "citations": [
+          {
+            "chunk_id": "single-use-plastic-free-policy:none:7",
+            "document_title": "Single-use Plastic-free Policy",
+            "section_path": "Exemptions/Waiver"
+          }
+        ]
+      },
+      "raw_citation_ids": [
+        "single-use-plastic-free-policy:none:7"
+      ],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "Site Admin Head and Sustainability/ESG"
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "plastic-sup-deadline",
+      "question": "By when must policy-prohibited single-use plastic items be eliminated at Coforge India sites?",
+      "gold_answer": "By Dec 2026.",
+      "expect_supported": true,
+      "gold_chunk_id": "single-use-plastic-free-policy:none:15",
+      "gold_in_prompt": true,
+      "answer": {
+        "supported": true,
+        "text": "100% elimination of Policy-prohibited single-use plastic items across all Coforge India sites is expected by Dec 2026.",
+        "citations": [
+          {
+            "chunk_id": "single-use-plastic-free-policy:none:15",
+            "document_title": "Single-use Plastic-free Policy",
+            "section_path": "Targets & KPIs (India \u2013 All Sites) > Targets"
+          }
+        ]
+      },
+      "raw_citation_ids": [
+        "single-use-plastic-free-policy:none:15"
+      ],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "Dec 2026"
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "carbon-reduction-target",
+      "question": "By how much and by which year does the current Carbon Reduction Plan commit to relatively reduce emissions from the baseline year?",
+      "gold_answer": "Relatively reduce emissions by 20% by 2030 from the baseline year.",
+      "expect_supported": true,
+      "gold_chunk_id": "carbon-reduction-plan:2024-03-28:6",
+      "gold_in_prompt": true,
+      "answer": {
+        "supported": true,
+        "text": "The current Carbon Reduction Plan commits to relatively reduce emissions by 20% (from 10,728.20 tCO2e in the baseline year) by 2030.",
+        "citations": [
+          {
+            "chunk_id": "carbon-reduction-plan:2024-03-28:6",
+            "document_title": "Carbon Reduction Plan",
+            "section_path": "Emissions reduction targets"
+          }
+        ]
+      },
+      "raw_citation_ids": [
+        "carbon-reduction-plan:2024-03-28:6"
+      ],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "20%",
+        "2030"
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "carbon-iso-standards",
+      "question": "Which ISO standards does the current Carbon Reduction Plan say the environment, health, and safety management system conforms to?",
+      "gold_answer": "ISO 14001:2015 and ISO 45001:2018.",
+      "expect_supported": true,
+      "gold_chunk_id": "carbon-reduction-plan:2024-03-28:7",
+      "gold_in_prompt": true,
+      "answer": {
+        "supported": true,
+        "text": "The environment, health, and safety management system conforms to ISO 14001:2015 & ISO 45001:2018 standards.",
+        "citations": [
+          {
+            "chunk_id": "carbon-reduction-plan:2024-03-28:7",
+            "document_title": "Carbon Reduction Plan",
+            "section_path": "Carbon Reduction Initiatives"
+          }
+        ]
+      },
+      "raw_citation_ids": [
+        "carbon-reduction-plan:2024-03-28:7"
+      ],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "ISO 14001:2015",
+        "ISO 45001:2018"
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "travel-expense-deadline",
+      "question": "What is the deadline for travel expense reports?",
+      "gold_answer": "The corpus does not mention this.",
+      "expect_supported": false,
+      "gold_chunk_id": null,
+      "gold_in_prompt": null,
+      "answer": {
+        "supported": false,
+        "text": "The corpus does not mention this.",
+        "citations": []
+      },
+      "raw_citation_ids": [],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "The corpus does not mention this."
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    },
+    {
+      "case_id": "parental-leave-weeks",
+      "question": "How many weeks of parental leave does the policy grant?",
+      "gold_answer": "The corpus does not mention this.",
+      "expect_supported": false,
+      "gold_chunk_id": null,
+      "gold_in_prompt": null,
+      "answer": {
+        "supported": false,
+        "text": "The corpus does not mention this.",
+        "citations": []
+      },
+      "raw_citation_ids": [],
+      "citations_ok": true,
+      "refusal_ok": true,
+      "faithful": true,
+      "accurate": true,
+      "key_information": true,
+      "key_facts": [
+        "The corpus does not mention this."
+      ],
+      "faithfulness_reason": "",
+      "accuracy_reason": "",
+      "error": null
+    }
+  ]
+}
