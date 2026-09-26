@@ -22,6 +22,8 @@ ExpectedRoute = Literal["current", "historical", "comparison"]
 
 
 class EvaluationCase(BaseModel):
+    """One fixed test question and the chunk ids and facts that should answer it."""
+
     model_config = ConfigDict(extra="forbid")
 
     id: str = Field(pattern=r"^[a-z0-9_]+$")
@@ -35,6 +37,7 @@ class EvaluationCase(BaseModel):
 
     @model_validator(mode="after")
     def validate_ground_truth(self) -> EvaluationCase:
+        """Require chunks and facts only for questions the corpus can answer."""
         if self.answerable and not self.relevant_chunk_ids:
             raise ValueError("answerable cases require relevant chunks")
         if self.answerable and not self.expected_facts:
@@ -45,6 +48,7 @@ class EvaluationCase(BaseModel):
 
 
 def load_evaluation_set(path: Path) -> list[EvaluationCase]:
+    """Read one JSON question per line and reject duplicate ids."""
     cases = [
         EvaluationCase.model_validate_json(line)
         for line in path.read_text(encoding="utf-8").splitlines()
@@ -57,6 +61,7 @@ def load_evaluation_set(path: Path) -> list[EvaluationCase]:
 
 
 def corpus_chunk_ids(path: Path) -> set[str]:
+    """Collect every chunk id stored in the chunk JSONL file."""
     return {
         str(json.loads(line)["chunk_id"])
         for line in path.read_text(encoding="utf-8").splitlines()
@@ -65,6 +70,7 @@ def corpus_chunk_ids(path: Path) -> set[str]:
 
 
 def validate_relevant_chunks(cases: list[EvaluationCase], chunks_path: Path) -> None:
+    """Fail when a test question points at a chunk id that is not in the corpus."""
     available = corpus_chunk_ids(chunks_path)
     missing = {
         chunk_id

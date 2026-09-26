@@ -8,6 +8,8 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class Citation(BaseModel):
+    """Source shown under an answer: document, version, section, pages, and chunk id."""
+
     model_config = ConfigDict(frozen=True)
 
     chunk_id: str
@@ -63,6 +65,8 @@ class StructuredAnswerPayload(BaseModel):
 
 
 class GroundedAnswer(BaseModel):
+    """Final answer text, whether the sources were enough, and the citations used."""
+
     model_config = ConfigDict(frozen=True)
 
     answer: str

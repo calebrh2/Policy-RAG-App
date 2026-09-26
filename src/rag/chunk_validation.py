@@ -6,9 +6,13 @@ from typing import Any, Protocol
 
 
 class TokenCounter(Protocol):
+    """Anything that can count tokens the way the embedding model does."""
+
     application_token_limit: int
 
-    def count_tokens(self, text: str) -> int: ...
+    def count_tokens(self, text: str) -> int:
+        """Return the token count for one chunk's retrieval text."""
+        ...
 
 
 def validate_chunks(

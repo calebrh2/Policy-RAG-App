@@ -29,6 +29,7 @@ DEFAULT_COLLECTION = SETTINGS.chroma_collection
 
 
 def _write_chunks(chunks: list[Chunk], path: Path) -> None:
+    """Write chunks as one JSON object per line."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
         "".join(json.dumps(chunk.to_dict(), ensure_ascii=False) + "\n" for chunk in chunks),
@@ -37,10 +38,12 @@ def _write_chunks(chunks: list[Chunk], path: Path) -> None:
 
 
 def _load_jsonl(path: Path) -> list[dict[str, Any]]:
+    """Read a JSONL file into a list of dictionaries."""
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
 
 
 def _validate_file(path: Path, embedder: BgeEmbeddingAdapter) -> list[dict[str, Any]]:
+    """Count tokens with the real BGE tokenizer and rewrite the chunk file."""
     validated = validate_chunks(_load_jsonl(path), embedder)
     path.write_text(
         "".join(json.dumps(chunk, ensure_ascii=False) + "\n" for chunk in validated),
@@ -50,6 +53,7 @@ def _validate_file(path: Path, embedder: BgeEmbeddingAdapter) -> list[dict[str, 
 
 
 def _build_retrieval(args: argparse.Namespace) -> RetrievalService:
+    """Build hybrid retrieval over the saved chunks and Chroma collection."""
     records = load_searchable_records(args.chunks)
     bm25 = BM25KeywordSearchAdapter()
     bm25.index(records)
@@ -65,6 +69,7 @@ def _build_retrieval(args: argparse.Namespace) -> RetrievalService:
 
 
 def command_chunk(args: argparse.Namespace) -> None:
+    """Chunk the Markdown policies and write them to the chunk file."""
     paths = sorted(args.input_dir.glob("*.md"))
     if not paths:
         raise SystemExit(f"No Markdown files found in {args.input_dir}")
@@ -76,6 +81,7 @@ def command_chunk(args: argparse.Namespace) -> None:
 
 
 def command_validate(args: argparse.Namespace) -> None:
+    """Check that searchable chunks fit the BGE token limit."""
     embedder = BgeEmbeddingAdapter(
         model_name=SETTINGS.embedding_model,
         application_token_limit=SETTINGS.embedding_token_limit,
@@ -89,6 +95,7 @@ def command_validate(args: argparse.Namespace) -> None:
 
 
 def command_ingest(args: argparse.Namespace) -> None:
+    """Chunk, validate, embed, and store the policies in Chroma."""
     paths = sorted(args.input_dir.glob("*.md"))
     if paths:
         chunks = [chunk for path in paths for chunk in create_chunks(path)]
@@ -120,6 +127,7 @@ def command_ingest(args: argparse.Namespace) -> None:
 
 
 def command_route(args: argparse.Namespace) -> None:
+    """Print whether a question should use the current, old, or both versions."""
     decision = _build_router(args).route(args.query)
     print(f"route={decision.route.value}")
     print(f"statuses={','.join(decision.statuses)}")
@@ -127,10 +135,12 @@ def command_route(args: argparse.Namespace) -> None:
 
 
 def _selected_route(value: str) -> QueryRoute | None:
+    """Return a forced route, or None when the caller asked for automatic routing."""
     return None if value == "auto" else QueryRoute(value)
 
 
 def command_retrieve(args: argparse.Namespace) -> None:
+    """Print the reranked chunks for a question, without calling the answer model."""
     service = _build_retrieval(args)
     decision = _build_router(args).route(args.query)
     statuses: tuple[str, ...]
@@ -165,6 +175,7 @@ def command_retrieve(args: argparse.Namespace) -> None:
 
 
 def command_ask(args: argparse.Namespace) -> None:
+    """Answer a question and print the cited sources."""
     llm = OllamaAdapter(
         model_name=args.model,
         base_url=args.ollama_url,
@@ -201,12 +212,14 @@ def command_ask(args: argparse.Namespace) -> None:
 
 
 def _common_storage(parser: argparse.ArgumentParser) -> None:
+    """Add the chunk file, Chroma path, and collection arguments."""
     parser.add_argument("--chunks", type=Path, default=DEFAULT_CHUNKS)
     parser.add_argument("--chroma", type=Path, default=DEFAULT_CHROMA)
     parser.add_argument("--collection", default=DEFAULT_COLLECTION)
 
 
 def _common_query(parser: argparse.ArgumentParser) -> None:
+    """Add storage, route, and retrieval-size arguments shared by query commands."""
     _common_storage(parser)
     parser.add_argument(
         "--route",
@@ -219,6 +232,7 @@ def _common_query(parser: argparse.ArgumentParser) -> None:
 
 
 def _router_options(parser: argparse.ArgumentParser) -> None:
+    """Add the Ollama model, URL, and router confidence arguments."""
     parser.add_argument("--model", default=SETTINGS.ollama_model)
     parser.add_argument(
         "--ollama-url",
@@ -228,6 +242,7 @@ def _router_options(parser: argparse.ArgumentParser) -> None:
 
 
 def _build_router(args: argparse.Namespace) -> HybridQueryRouter:
+    """Build the rule-first router with an Ollama fallback."""
     return HybridQueryRouter(
         OllamaAdapter(
             model_name=args.model,
@@ -240,6 +255,7 @@ def _build_router(args: argparse.Namespace) -> HybridQueryRouter:
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the chunk, validate, ingest, route, retrieve, and ask commands."""
     parser = argparse.ArgumentParser(prog="python -m rag.cli", description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
 
@@ -277,6 +293,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> None:
+    """Parse the command line and run the selected command."""
     args = build_parser().parse_args()
     args.handler(args)
 

@@ -13,10 +13,12 @@ Transport = Callable[[JsonObject], JsonObject]
 
 
 class OllamaError(RuntimeError):
-    pass
+    """Raised when Ollama cannot be reached or returns an unusable reply."""
 
 
 class OllamaAdapter:
+    """Talks to a local Ollama model for both free text and JSON answers."""
+
     def __init__(
         self,
         model_name: str = "qwen3:8b",
@@ -35,6 +37,7 @@ class OllamaAdapter:
         self._transport = transport or self._http_chat
 
     def _http_chat(self, payload: JsonObject) -> JsonObject:
+        """POST one chat request to Ollama and return the JSON body."""
         request = Request(
             f"{self.base_url}/api/chat",
             data=json.dumps(payload).encode("utf-8"),
@@ -62,6 +65,7 @@ class OllamaAdapter:
         *,
         response_schema: Mapping[str, Any],
     ) -> str:
+        """Ask the model for JSON that follows the given schema."""
         payload: JsonObject = {
             "model": self.model_name,
             "messages": [dict(message) for message in messages],
@@ -83,6 +87,7 @@ class OllamaAdapter:
         return content
 
     def generate(self, prompt: str) -> str:
+        """Ask the model for a plain text reply."""
         response = self._transport(
             {
                 "model": self.model_name,

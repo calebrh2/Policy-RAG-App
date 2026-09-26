@@ -35,6 +35,8 @@ AMBIGUOUS_TEMPORAL_RE = re.compile(
 
 
 class QueryRoute(StrEnum):
+    """Which policy version a question should search."""
+
     CLARIFICATION = "clarification"
     CURRENT = "current"
     HISTORICAL = "historical"
@@ -43,11 +45,14 @@ class QueryRoute(StrEnum):
 
 @dataclass(frozen=True)
 class RouteDecision:
+    """The chosen route and a short reason a person can read."""
+
     route: QueryRoute
     reason: str
 
     @property
     def statuses(self) -> tuple[str, ...]:
+        """Metadata status values this route is allowed to retrieve."""
         if self.route is QueryRoute.COMPARISON:
             return ("current", "superseded")
         if self.route is QueryRoute.HISTORICAL:
@@ -58,13 +63,18 @@ class RouteDecision:
 
 
 class Router(Protocol):
-    def route(self, query: str) -> RouteDecision: ...
+    """Chooses current, historical, comparison, or clarification for a question."""
+
+    def route(self, query: str) -> RouteDecision:
+        """Return the version intent for this question."""
+        ...
 
 
 class QueryRouter:
     """Resolve explicit version intent and default ordinary queries to current."""
 
     def explicit_route(self, query: str) -> RouteDecision | None:
+        """Return a route when the wording clearly names a version, else None."""
         normalized = " ".join(query.split())
         if COMPARISON_RE.search(normalized):
             return RouteDecision(
@@ -84,12 +94,14 @@ class QueryRouter:
         return None
 
     def needs_llm(self, query: str) -> bool:
+        """True when version intent is ambiguous and the LLM fallback should run."""
         normalized = " ".join(query.split())
         return self.explicit_route(normalized) is None and bool(
             AMBIGUOUS_TEMPORAL_RE.search(normalized)
         )
 
     def route(self, query: str) -> RouteDecision:
+        """Use an explicit version cue, otherwise treat the question as current."""
         explicit = self.explicit_route(query)
         if explicit is not None:
             return explicit
@@ -124,6 +136,7 @@ class HybridQueryRouter:
         self.rules = rules or QueryRouter()
 
     def route(self, query: str) -> RouteDecision:
+        """Apply the rules first, then ask the model only for unclear time intent."""
         explicit = self.rules.explicit_route(query)
         if explicit is not None:
             return explicit

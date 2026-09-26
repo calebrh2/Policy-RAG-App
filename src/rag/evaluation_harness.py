@@ -22,6 +22,7 @@ from rag.pipeline import RAGPipeline
 
 
 def coverage(groups: list[list[str]], ids: Sequence[str]) -> float | None:
+    """Fraction of required evidence groups that appear in the retrieved ids."""
     if not groups:
         return None
     found = set(ids)
@@ -45,6 +46,7 @@ def evaluate_case(
     top_k: int = 5,
     candidates: int = 10,
 ) -> dict[str, Any]:
+    """Run one question through the pipeline and score route, recall, facts, and citations."""
     context: list[SearchResult] = []
     started = time.perf_counter()
     row: dict[str, Any] = {
@@ -131,6 +133,7 @@ def evaluate_case(
 
 
 def validate_rubrics(cases: list[EvaluationCase], rubrics: dict[str, Any]) -> None:
+    """Check that every question has a matching answer key and valid patterns."""
     for case in cases:
         rubric = rubrics[case.id]
         groups = rubric["evidence_groups"]
@@ -208,6 +211,7 @@ def run_suite(
     candidates: int = 10,
     inputs: Sequence[Path] = (),
 ) -> list[dict[str, Any]]:
+    """Score every question and write results, a summary, and a review file."""
     validate_rubrics(cases, rubrics)
     output.mkdir(parents=True, exist_ok=True)
     manifest = {

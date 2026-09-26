@@ -30,14 +30,16 @@ class ChromaVectorStoreAdapter:
 
     @staticmethod
     def _where(filters: Mapping[str, MetadataValue] | None) -> dict[str, Any] | None:
+        """Turn metadata filters into a Chroma where clause."""
         if not filters:
             return None
         clauses = [{key: {"$eq": value}} for key, value in filters.items()]
         return clauses[0] if len(clauses) == 1 else {"$and": clauses}
 
     def upsert(
-        self, records: Sequence[VectorRecord], embeddings: Sequence[Sequence[float]]
+        self, records: Sequence[VectorRecord],         embeddings: Sequence[Sequence[float]]
     ) -> None:
+        """Insert or replace these chunks and the embeddings the caller computed."""
         if len(records) != len(embeddings):
             raise ValueError("records and embeddings must have the same length")
         if not records:
@@ -56,6 +58,7 @@ class ChromaVectorStoreAdapter:
         limit: int,
         filters: Mapping[str, MetadataValue] | None = None,
     ) -> list[SearchResult]:
+        """Return the nearest chunks. Score is cosine similarity, higher is closer."""
         if limit <= 0:
             return []
         result = self.collection.query(
@@ -79,4 +82,5 @@ class ChromaVectorStoreAdapter:
         ]
 
     def count(self) -> int:
+        """Return how many chunks are stored in the collection."""
         return int(self.collection.count())

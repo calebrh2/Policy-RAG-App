@@ -16,6 +16,7 @@ from rag.adapters.base import (
 
 
 def load_searchable_records(path: Path) -> list[VectorRecord]:
+    """Load chunks that are marked searchable and already have a token count."""
     records: list[VectorRecord] = []
     for line in path.read_text(encoding="utf-8").splitlines():
         if not line:
@@ -52,6 +53,7 @@ def load_searchable_records(path: Path) -> list[VectorRecord]:
 
 
 def _batches(records: list[VectorRecord], size: int) -> Iterable[list[VectorRecord]]:
+    """Yield records in fixed-size groups for embedding."""
     for start in range(0, len(records), size):
         yield records[start : start + size]
 
@@ -63,6 +65,7 @@ def index_records(
     *,
     batch_size: int = 16,
 ) -> int:
+    """Embed the records and store them. Returns how many chunks were indexed."""
     if batch_size <= 0:
         raise ValueError("batch_size must be positive")
     indexed = 0

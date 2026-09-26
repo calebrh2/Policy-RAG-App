@@ -30,6 +30,7 @@ class CrossEncoderRerankerAdapter:
 
     @property
     def model(self) -> Any:
+        """Load the cross-encoder the first time a candidate list is rescored."""
         if self._model is None:
             from sentence_transformers import CrossEncoder
 
@@ -43,6 +44,7 @@ class CrossEncoderRerankerAdapter:
         *,
         limit: int,
     ) -> list[SearchResult]:
+        """Score each candidate against the question and keep the best ones."""
         if limit <= 0 or not candidates:
             return []
         scores = self.model.predict(

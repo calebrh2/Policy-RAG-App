@@ -35,6 +35,8 @@ def reciprocal_rank_fusion(
 
 
 class RetrievalService:
+    """Runs vector search, keyword search, fusion, and optional reranking."""
+
     def __init__(
         self,
         embedder: EmbeddingAdapter,
@@ -51,6 +53,7 @@ class RetrievalService:
     def current_filters(
         filters: Mapping[str, MetadataValue] | None = None,
     ) -> dict[str, MetadataValue]:
+        """Default search to the current policy unless the caller overrides status."""
         combined: dict[str, MetadataValue] = {"status": "current"}
         if filters:
             combined.update(filters)
@@ -63,6 +66,7 @@ class RetrievalService:
         limit: int = 10,
         filters: Mapping[str, MetadataValue] | None = None,
     ) -> list[SearchResult]:
+        """Return the nearest chunks by embedding similarity."""
         query_embedding = self.embedder.embed_query(query)
         return self.vector_store.search(
             query_embedding,
@@ -77,6 +81,7 @@ class RetrievalService:
         limit: int = 10,
         filters: Mapping[str, MetadataValue] | None = None,
     ) -> list[SearchResult]:
+        """Return chunks matched by BM25 keyword search."""
         return self.keyword_search.search(
             query,
             limit=limit,
@@ -91,6 +96,7 @@ class RetrievalService:
         limit: int = 10,
         filters: Mapping[str, MetadataValue] | None = None,
     ) -> list[SearchResult]:
+        """Combine vector and keyword rankings with reciprocal rank fusion."""
         dense = self.dense(query, limit=candidate_limit, filters=filters)
         sparse = self.sparse(query, limit=candidate_limit, filters=filters)
         return reciprocal_rank_fusion([dense, sparse], limit=limit)
@@ -103,6 +109,7 @@ class RetrievalService:
         final_limit: int = 5,
         filters: Mapping[str, MetadataValue] | None = None,
     ) -> list[SearchResult]:
+        """Hybrid-search a wide candidate set, then rerank down to the final few."""
         candidates = self.hybrid(
             query,
             candidate_limit=candidate_limit,

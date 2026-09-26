@@ -15,6 +15,7 @@ QUESTION = "Does the current Carbon Reduction Plan set a 15% reduction target fo
 
 
 def main() -> None:
+    """Show the outdated carbon plan answering a current-policy question, then the fix."""
     settings = get_settings()
     records = load_searchable_records(settings.chunks_path)
     embedder = BgeEmbeddingAdapter(

@@ -23,6 +23,8 @@ NON_SEARCHABLE = {
 
 @dataclass(frozen=True)
 class MarkdownBlock:
+    """One paragraph, list item, or table, with the PDF pages it came from."""
+
     kind: Literal["paragraph", "list_item", "table"]
     text: str
     page_start: int
@@ -31,6 +33,8 @@ class MarkdownBlock:
 
 @dataclass(frozen=True)
 class MarkdownSection:
+    """A heading path and the blocks that sit under it."""
+
     document_title: str
     source_file: str
     heading_path: tuple[str, ...]
@@ -39,6 +43,8 @@ class MarkdownSection:
 
 @dataclass(frozen=True)
 class Chunk:
+    """A retrieval unit: section text, version, pages, and whether it may be searched."""
+
     chunk_id: str
     document_id: str
     document_title: str
@@ -55,11 +61,14 @@ class Chunk:
     retrieval_text: str
 
     def to_dict(self) -> dict[str, object]:
+        """Return this chunk as a JSON-ready dictionary."""
         return asdict(self)
 
 
 @dataclass(frozen=True)
 class DocumentVersion:
+    """The id, date, and current-or-superseded status of one source file."""
+
     document_id: str
     version: str
     status: Literal["current", "superseded"]
@@ -80,10 +89,12 @@ DOCUMENT_VERSIONS = {
 
 
 def estimate_tokens(text: str) -> int:
+    """Rough token count used while splitting, before the real BGE tokenizer runs."""
     return len(TOKEN_RE.findall(text))
 
 
 def _block_kind(text: str) -> Literal["paragraph", "list_item", "table"]:
+    """Classify a Markdown block as a table, a list item, or a paragraph."""
     if text.lstrip().startswith("|"):
         return "table"
     if re.match(r"^(?:[-*+]\s+|\d+\.\s+)", text):
@@ -92,6 +103,7 @@ def _block_kind(text: str) -> Literal["paragraph", "list_item", "table"]:
 
 
 def parse_markdown_sections(path: Path) -> list[MarkdownSection]:
+    """Split a policy Markdown file into sections, keeping heading paths and pages."""
     source_file, title = path.with_suffix(".pdf").name, path.stem
     headings: list[str] = []
     pages = (1, 1)
@@ -129,6 +141,7 @@ def parse_markdown_sections(path: Path) -> list[MarkdownSection]:
 def _merge_parent_intros(
     sections: list[MarkdownSection], preferred_min: int
 ) -> list[MarkdownSection]:
+    """Attach a short parent introduction to the child section that follows it."""
     result: list[MarkdownSection] = []
     index = 0
     while index < len(sections):
@@ -175,6 +188,7 @@ def _semantic_units(blocks: tuple[MarkdownBlock, ...]) -> list[list[MarkdownBloc
 def _pack_large_section(
     blocks: tuple[MarkdownBlock, ...], preferred_min: int, target: int, hard_max: int
 ) -> list[list[MarkdownBlock]]:
+    """Split a long section on paragraph and list boundaries, never inside them."""
     groups: list[list[MarkdownBlock]] = []
     current: list[MarkdownBlock] = []
     size = 0
@@ -198,6 +212,7 @@ def _pack_large_section(
 
 
 def _table_as_text(markdown: str) -> str:
+    """Rewrite a Markdown table as sentences so retrieval keeps row and column names."""
     rows = [
         [cell.strip() for cell in line.strip().strip("|").split("|")]
         for line in markdown.splitlines()
@@ -218,6 +233,7 @@ def _table_as_text(markdown: str) -> str:
 
 
 def _slug(value: str) -> str:
+    """Turn a title into a short lowercase id."""
     return re.sub(r"[^a-z0-9]+", "-", value.casefold()).strip("-")[:60] or "document"
 
 
@@ -229,6 +245,7 @@ def create_chunks(
     soft_max_tokens: int = 450,
     hard_max_tokens: int = 500,
 ) -> list[Chunk]:
+    """Chunk one policy by section first, then by size, and repeat section context."""
     if not 0 < preferred_min_tokens <= target_tokens <= soft_max_tokens <= hard_max_tokens:
         raise ValueError("Expected minimum <= target <= soft maximum <= hard maximum")
     version = DOCUMENT_VERSIONS.get(
@@ -287,6 +304,7 @@ FirstPassChunk = Chunk
 
 
 def create_first_pass_chunks(path: Path, *, max_estimated_tokens: int = 400) -> list[Chunk]:
+    """Chunk a file with one size limit, used by the early chunking tests."""
     return create_chunks(
         path,
         preferred_min_tokens=min(100, max_estimated_tokens),

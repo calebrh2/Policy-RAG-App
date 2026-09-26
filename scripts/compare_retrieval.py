@@ -18,6 +18,7 @@ DEFAULT_EXPECTED = "single-use-plastic-free-policy:2026-03-10:targets:01:01a70e5
 
 
 def rank_of(results: list[SearchResult], expected_id: str) -> int | None:
+    """Return the 1-based rank of the expected chunk, or None if it is missing."""
     return next(
         (rank for rank, result in enumerate(results, 1) if result.record.id == expected_id),
         None,
@@ -25,6 +26,7 @@ def rank_of(results: list[SearchResult], expected_id: str) -> int | None:
 
 
 def print_ranking(name: str, results: list[SearchResult], expected_id: str) -> None:
+    """Print the top results for one search method and where the expected chunk landed."""
     print(f"\n{name}")
     for rank, result in enumerate(results[:5], 1):
         metadata = result.record.metadata
@@ -38,6 +40,7 @@ def print_ranking(name: str, results: list[SearchResult], expected_id: str) -> N
 
 
 def main() -> None:
+    """Compare dense, keyword, hybrid, and reranked search on one real question."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--question", default=DEFAULT_QUESTION)
     parser.add_argument("--expected-chunk", default=DEFAULT_EXPECTED)

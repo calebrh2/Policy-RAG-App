@@ -19,6 +19,8 @@ from rag.router import (
 
 
 class RAGPipeline:
+    """Routes a question, retrieves evidence, and returns a cited answer."""
+
     def __init__(
         self,
         retrieval: RetrievalService,
@@ -38,6 +40,7 @@ class RAGPipeline:
         context_limit: int = 3,
         route: QueryRoute | None = None,
     ) -> tuple[GroundedAnswer, RouteDecision]:
+        """Answer one question, or ask for a clearer question when intent is vague."""
         if not is_specific_question(question):
             return (
                 GroundedAnswer(

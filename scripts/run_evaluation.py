@@ -18,6 +18,7 @@ SETTINGS = get_settings()
 
 
 def main() -> None:
+    """Run the fixed question set through the live pipeline and save the scores."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--dataset", type=Path, default=ROOT / "data/evaluation/evaluation-set.jsonl"

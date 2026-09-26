@@ -11,6 +11,7 @@ from rag.config import get_settings
 
 
 def main() -> None:
+    """Embed two known sentences, store them, and check the relevant one ranks first."""
     settings = get_settings()
     embedder = BgeEmbeddingAdapter(
         model_name=settings.embedding_model,

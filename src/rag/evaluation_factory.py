@@ -16,6 +16,7 @@ from rag.router import HybridQueryRouter
 
 
 def build_pipeline(index_path: Path, chunks: Path, model: str, url: str) -> RAGPipeline:
+    """Index the chunks in a fresh Chroma directory and return a live pipeline."""
     settings = get_settings()
     records = load_searchable_records(chunks)
     embedder = BgeEmbeddingAdapter(

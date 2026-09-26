@@ -44,7 +44,7 @@ Rules:
 """
 
 class GenerationValidationError(ValueError):
-    pass
+    """Raised when the model reply cannot be turned into a cited answer."""
 
 
 PERCENT_RE = re.compile(r"\d+(?:[.,]\d+)?\s*%")
@@ -55,6 +55,7 @@ APPROX_BEFORE_RE = re.compile(
 
 
 def _percentage_key(value: str) -> str:
+    """Normalize a percentage so '6,746.70 %' and '6746.70%' compare equal."""
     return value.replace(",", "").replace(" ", "").casefold()
 
 
@@ -88,6 +89,7 @@ def _restore_source_approximation(text: str, sources: Sequence[str]) -> str:
 
 
 def _context(results: Sequence[SearchResult]) -> str:
+    """Format retrieved chunks as numbered sources for the model prompt."""
     blocks = []
     for rank, result in enumerate(results, 1):
         metadata = result.record.metadata
@@ -120,6 +122,8 @@ def _render_claim(text: str, source_numbers: Sequence[int]) -> str:
 
 
 class GroundedAnswerGenerator:
+    """Asks the model for claims, then adds citation markers from chunk metadata."""
+
     def __init__(
         self,
         llm: StructuredLLMAdapter,
@@ -183,6 +187,7 @@ class GroundedAnswerGenerator:
         ) from last_error
 
     def generate(self, question: str, results: Sequence[SearchResult]) -> GroundedAnswer:
+        """Answer from these chunks only, and cite the chunks the claims used."""
         if not results:
             return GroundedAnswer(
                 answer="The available policy documents do not provide enough evidence to answer.",

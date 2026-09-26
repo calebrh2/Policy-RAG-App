@@ -13,6 +13,7 @@ TOKEN_RE = re.compile(r"\b\w+(?:[-']\w+)*\b", re.UNICODE)
 
 
 def bm25_tokens(text: str) -> list[str]:
+    """Split text into lowercase words for the BM25 index."""
     return TOKEN_RE.findall(text.casefold())
 
 
@@ -24,6 +25,7 @@ class BM25KeywordSearchAdapter:
         self._index: BM25Okapi | None = None
 
     def index(self, records: Sequence[VectorRecord]) -> None:
+        """Replace the in-memory BM25 index with these chunks."""
         self._records = list(records)
         corpus = [bm25_tokens(record.text) for record in self._records]
         self._index = BM25Okapi(corpus) if corpus else None
@@ -32,6 +34,7 @@ class BM25KeywordSearchAdapter:
     def _matches(
         record: VectorRecord, filters: Mapping[str, MetadataValue] | None
     ) -> bool:
+        """Return whether every metadata filter matches this chunk."""
         return not filters or all(record.metadata.get(key) == value for key, value in filters.items())
 
     def search(
@@ -41,6 +44,7 @@ class BM25KeywordSearchAdapter:
         limit: int,
         filters: Mapping[str, MetadataValue] | None = None,
     ) -> list[SearchResult]:
+        """Return the highest-scoring keyword matches, best first."""
         if limit <= 0 or self._index is None:
             return []
         scores = self._index.get_scores(bm25_tokens(query))

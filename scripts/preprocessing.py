@@ -23,6 +23,7 @@ OUTPUT = ROOT / "data/extracted/RAG-documents"
 
 
 def tokens(text: str) -> Counter[str]:
+    """Count words so extracted Markdown can be checked against the PDF text."""
     return Counter(re.findall(r"\w+", unicodedata.normalize("NFKC", text).casefold()))
 
 
@@ -36,6 +37,7 @@ def clean(text: str) -> str:
 
 
 def table_rows(table: Any) -> tuple[list[str], list[list[str]]]:
+    """Pull a PDF table into cleaned header and body rows."""
     rows = [[clean(c or "") for c in row] for row in table.extract()]
     preamble = []
     while rows and rows[0][0] and all(not c for c in rows[0][1:]):
@@ -51,6 +53,7 @@ def table_rows(table: Any) -> tuple[list[str], list[list[str]]]:
 
 
 def render_table(rows: list[list[str]]) -> str:
+    """Render cleaned table rows as a Markdown table."""
     def row_line(row: list[str]) -> str:
         return "| " + " | ".join(c.replace("|", "&#124;") for c in row) + " |"
 
@@ -103,12 +106,14 @@ HEADINGS = {
 
 
 def is_heading(text: str) -> bool:
+    """Return whether this PDF line should become a Markdown heading."""
     return text in HEADINGS or text.startswith(
         ("Baseline Year:", "Current Year Emission:", "Annexure A:", "A1.", "A2.", "A3.")
     )
 
 
 def extract(path: Path, output: Path) -> dict[str, Any]:
+    """Extract one PDF to Markdown and return a coverage report for that file."""
     doc = pymupdf.open(path)
     events: list[dict[str, Any]] = []
     report: dict[str, Any] = {
@@ -284,6 +289,7 @@ def extract(path: Path, output: Path) -> dict[str, Any]:
 
 
 def main() -> None:
+    """Extract every PDF in the source folder to Markdown."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input-dir", type=Path, default=SOURCE)
     parser.add_argument("--output-dir", type=Path, default=OUTPUT)

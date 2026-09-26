@@ -51,9 +51,11 @@ class BgeEmbeddingAdapter:
         return self._model
 
     def _input_text(self, text: str, *, is_query: bool) -> str:
+        """Prepend the BGE query instruction only when embedding a question."""
         return f"{self.QUERY_INSTRUCTION}{text}" if is_query else text
 
     def count_tokens(self, text: str, *, is_query: bool = False) -> int:
+        """Count tokens the real BGE tokenizer would use for this input."""
         prepared = self._input_text(text, is_query=is_query)
         return len(
             self.model.tokenizer.encode(
@@ -64,6 +66,7 @@ class BgeEmbeddingAdapter:
         )
 
     def _validate(self, text: str, *, is_query: bool) -> str:
+        """Return embeddable text, or raise if it would be truncated."""
         prepared = self._input_text(text, is_query=is_query)
         count = self.count_tokens(text, is_query=is_query)
         limit = self.max_input_tokens if is_query else self.application_token_limit
@@ -77,10 +80,12 @@ class BgeEmbeddingAdapter:
 
     @staticmethod
     def _as_lists(vectors: Any) -> list[list[float]]:
+        """Turn model output into plain lists of floats."""
         raw = vectors.tolist() if hasattr(vectors, "tolist") else vectors
         return [[float(value) for value in vector] for vector in raw]
 
     def embed_documents(self, texts: Sequence[str]) -> list[list[float]]:
+        """Embed chunk text. Queries use embed_query so the instruction is added."""
         if not texts:
             return []
         prepared = [self._validate(text, is_query=False) for text in texts]
@@ -93,6 +98,7 @@ class BgeEmbeddingAdapter:
         return self._as_lists(vectors)
 
     def embed_query(self, query: str) -> list[float]:
+        """Embed a question with the BGE search instruction prepended."""
         prepared = self._validate(query, is_query=True)
         vector = self.model.encode(
             prepared,
